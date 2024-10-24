@@ -27,32 +27,50 @@
     }
 }
     </script>
-    <h1>Connect Your Ton Wallet</h1>
-    <button onclick="connectTonWallet()">Connect Wallet</button>
-    <div id="wallet-address"></div>
-  
-    <script>
-      async function connectTonWallet() {
-        try {
-          // Sprawdzenie, czy TonWallet jest zainstalowany i dostępny
-          if (!window.ton) {
-            alert("Please install the TON Wallet extension to continue.");
-            return;
-          }
-  
-          // Połączenie z portfelem TON
-          await window.ton.requestPermissions();
-  
-          // Uzyskanie adresu portfela
-          const walletAddress = await window.ton.getAddress();
-  
-          // Wyświetlenie adresu portfela
-          document.getElementById("wallet-address").textContent = `Connected wallet address: ${walletAddress}`;
-        } catch (error) {
-          console.error("Error connecting to TON Wallet:", error);
-          alert("Failed to connect to TON Wallet. Please try again.");
-        }
-      }
-    </script>
+     <h1>Connect Your TON Wallet</h1>
+     <button id="connectButton">Connect Wallet</button>
+     <div id="walletInfo"></div>
+ 
+     <script>
+         const connector = new TonConnect({
+             manifestUrl: 'https://your-app-domain.com/tonconnect-manifest.json'
+         });
+ 
+         const buttonElement = document.getElementById('connectButton');
+         const walletInfoElement = document.getElementById('walletInfo');
+ 
+         buttonElement.addEventListener('click', async () => {
+             try {
+                 const walletConnectionSource = {
+                     universalLink: 'https://app.tonkeeper.com/ton-connect',
+                     bridgeUrl: 'https://bridge.tonapi.io/bridge'
+                 };
+ 
+                 await connector.connect(walletConnectionSource);
+ 
+                 updateWalletInfo();
+             } catch (error) {
+                 console.error('Error connecting wallet:', error);
+                 walletInfoElement.textContent = 'Failed to connect wallet. Please try again.';
+             }
+         });
+ 
+         connector.onStatusChange(async (walletInfo) => {
+             if (walletInfo) {
+                 updateWalletInfo();
+             } else {
+                 walletInfoElement.textContent = 'Wallet disconnected';
+             }
+         });
+ 
+         async function updateWalletInfo() {
+             const walletInfo = connector.account;
+             if (walletInfo) {
+                 walletInfoElement.textContent = `Connected wallet address: ${walletInfo.address}`;
+             } else {
+                 walletInfoElement.textContent = 'No wallet connected';
+             }
+         }
+     </script>
 </body>
 </html>

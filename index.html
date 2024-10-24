@@ -11,11 +11,48 @@
     <button onclick="sendDataToBot()">Send Data to Bot</button>
 
     <script>
+        if (window.Telegram && window.Telegram.WebApp) {
+    console.log('Web App otwarta w kontekście Telegram');
+} else {
+    console.log('Web App nie jest otwarta w kontekście Telegram');
+}
         function sendDataToBot() {
-            const data = {message: 'Hello from Web App!'};
-            window.Telegram.WebApp.sendData(JSON.stringify(data));
-            console.log('Data sent to bot:', data);
+    const data = {message: 'Hello from Web App!'};
+    console.log('Próba wysłania danych:', data);
+    try {
+        window.Telegram.WebApp.sendData(JSON.stringify(data));
+        console.log('Dane wysłane pomyślnie');
+    } catch (error) {
+        console.error('Błąd podczas wysyłania danych:', error);
+    }
+}
+    </script>
+    <h1>Connect Your Ton Wallet</h1>
+    <button onclick="connectTonWallet()">Connect Wallet</button>
+    <div id="wallet-address"></div>
+  
+    <script>
+      async function connectTonWallet() {
+        try {
+          // Sprawdzenie, czy TonWallet jest zainstalowany i dostępny
+          if (!window.ton) {
+            alert("Please install the TON Wallet extension to continue.");
+            return;
+          }
+  
+          // Połączenie z portfelem TON
+          await window.ton.requestPermissions();
+  
+          // Uzyskanie adresu portfela
+          const walletAddress = await window.ton.getAddress();
+  
+          // Wyświetlenie adresu portfela
+          document.getElementById("wallet-address").textContent = `Connected wallet address: ${walletAddress}`;
+        } catch (error) {
+          console.error("Error connecting to TON Wallet:", error);
+          alert("Failed to connect to TON Wallet. Please try again.");
         }
+      }
     </script>
 </body>
 </html>

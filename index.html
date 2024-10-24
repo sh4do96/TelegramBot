@@ -3,84 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TON Wallet Connect Example</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js" defer></script>
+    <title>TON Connect Example</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tonconnect/tonconnect@latest/dist/tonconnect.js"></script>
 </head>
 <body>
-    <h1>Telegram Web App Example</h1>
-    <button onclick="sendDataToBot()">Send Data to Bot</button>
+    <button onclick="connectWallet()">Connect Wallet</button>
+    <button onclick="sendTransaction()">Send Transaction</button>
 
     <script>
-        if (window.Telegram && window.Telegram.WebApp) {
-            console.log('Web App otwarta w kontekście Telegram');
-        } else {
-            console.log('Web App nie jest otwarta w kontekście Telegram');
+        let tonConnect;
+
+        async function connectWallet() {
+            tonConnect = new TonConnect();
+            await tonConnect.init();
+            const account = await tonConnect.connect();
+            console.log('Connected account:', account);
         }
 
-        function sendDataToBot() {
-            const data = {message: 'Hello from Web App!'};
-            console.log('Próba wysłania danych:', data);
-            try {
-                window.Telegram.WebApp.sendData(JSON.stringify(data));
-                console.log('Dane wysłane pomyślnie');
-            } catch (error) {
-                console.error('Błąd podczas wysyłania danych:', error);
-            }
-        }
-    </script>
-
-    <h1>Connect Your TON Wallet</h1>
-    <button id="connectButton">Connect Wallet</button>
-    <div id="walletInfo"></div>
-
-    <script>
-        window.onload = async () => {
-            if (typeof TonConnectSDK === 'undefined') {
-                console.error('TonConnectSDK is not defined');
+        async function sendTransaction() {
+            if (!tonConnect) {
+                alert('Please connect your wallet first');
                 return;
             }
-
-            const connector = new TonConnectSDK.TonConnect({
-                manifestUrl: 'https://sh4do96.github.io/TelegramBot/tonconnect-manifest.json'
-            });
-
-            const buttonElement = document.getElementById('connectButton');
-            const walletInfoElement = document.getElementById('walletInfo');
-
-            buttonElement.addEventListener('click', async () => {
-                try {
-                    const walletConnectionSource = {
-                        universalLink: 'https://app.tonkeeper.com/ton-connect',
-                        bridgeUrl: 'https://bridge.tonapi.io/bridge'
-                    };
-
-                    await connector.connect(walletConnectionSource);
-
-                    updateWalletInfo();
-                } catch (error) {
-                    console.error('Error connecting wallet:', error);
-                    walletInfoElement.textContent = 'Failed to connect wallet. Please try again.';
-                }
-            });
-
-            connector.onStatusChange(async (walletInfo) => {
-                if (walletInfo) {
-                    updateWalletInfo();
-                } else {
-                    walletInfoElement.textContent = 'Wallet disconnected';
-                }
-            });
-
-            async function updateWalletInfo() {
-                const walletInfo = connector.account;
-                if (walletInfo) {
-                    walletInfoElement.textContent = `Connected wallet address: ${walletInfo.address}`;
-                } else {
-                    walletInfoElement.textContent = 'No wallet connected';
-                }
-            }
-        };
+            const transaction = {
+                to: '0:1234567890abcdef1234567890abcdef12345678',
+                value: '1.0',
+                data: '0x',
+                sendMode: 3,
+            };
+            await tonConnect.sendTransaction(transaction);
+            console.log('Transaction sent');
+        }
     </script>
 </body>
 </html>

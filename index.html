@@ -4,36 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TON Connect Example</title>
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tonconnect/tonconnect@latest/dist/tonconnect.js"></script>
 </head>
 <body>
-    <button onclick="connectWallet()">Connect Wallet</button>
-    <button onclick="sendTransaction()">Send Transaction</button>
 
+    <div id="ton-connect"></div>
     <script>
-        let tonConnect;
-
-        async function connectWallet() {
-            tonConnect = new TonConnect();
-            await tonConnect.init();
-            const account = await tonConnect.connect();
-            console.log('Connected account:', account);
-        }
-
-        async function sendTransaction() {
-            if (!tonConnect) {
-                alert('Please connect your wallet first');
-                return;
-            }
-            const transaction = {
-                to: '0:1234567890abcdef1234567890abcdef12345678',
-                value: '1.0',
-                data: '0x',
-                sendMode: 3,
-            };
-            await tonConnect.sendTransaction(transaction);
-            console.log('Transaction sent');
-        }
+        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+            manifestUrl: 'https://<YOUR_APP_URL>/tonconnect-manifest.json',
+            buttonRootId: 'ton-connect'
+        });
+        tonConnectUI.uiOptions = {
+      twaReturnUrl: 'https://t.me/FreeTonAirDrop2025_bot'
+  };
     </script>
+
 </body>
 </html>

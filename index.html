@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telegram Web App Example</title>
+    <title>TON Wallet Connect Example</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js" defer></script>
 </head>
 <body>
     <h1>Telegram Web App Example</h1>
@@ -35,12 +35,13 @@
     <div id="walletInfo"></div>
 
     <script>
-        if (typeof TonConnect === 'undefined') {
-            console.error('TonConnect is not defined');
-        } else {
-            console.log('TonConnect is defined');
+        window.onload = async () => {
+            if (typeof TonConnectSDK === 'undefined') {
+                console.error('TonConnectSDK is not defined');
+                return;
+            }
 
-            const connector = new TonConnect({
+            const connector = new TonConnectSDK.TonConnect({
                 manifestUrl: 'https://sh4do96.github.io/TelegramBot/tonconnect-manifest.json'
             });
 
@@ -79,7 +80,7 @@
                     walletInfoElement.textContent = 'No wallet connected';
                 }
             }
-        }
+        };
     </script>
 </body>
 </html>

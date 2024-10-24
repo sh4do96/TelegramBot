@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Telegram Web App Example</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
+
 </head>
 <body>
     <h1>Telegram Web App Example</h1>
@@ -33,7 +35,7 @@
  
      <script>
          const connector = new TonConnect({
-             manifestUrl: 'https://your-app-domain.com/tonconnect-manifest.json'
+             manifestUrl: 'https://sh4do96.github.io/TelegramBot/tonconnect-manifest.json'
          });
  
          const buttonElement = document.getElementById('connectButton');

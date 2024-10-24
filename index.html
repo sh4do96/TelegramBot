@@ -11,9 +11,14 @@
     <button onclick="sendDataToBot()">Send Data to Bot</button>
 
     <script>
-        function sendDataToBot() {
-            window.Telegram.WebApp.sendData('Hello from Web App!');
-        }
+       function sendDataToBot() {
+    try {
+        window.Telegram.WebApp.sendData('Hello from Web App!');
+        console.log('Dane wysłane do bota');
+    } catch (error) {
+        console.error('Błąd podczas wysyłania danych do bota:', error);
+    }
+}
     </script>
 </body>
 </html>

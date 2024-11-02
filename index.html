@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TON Connect Example</title>
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-    <script src="https://unpkg.com/@ton/ton@latest/dist/ton.min.js"></script>
+    <script src="https://unpkg.com/@ton/ton@latest/dist/ton.js"></script>
 </head>
 <body>
 
@@ -25,7 +25,7 @@
         const destinationAddress = 'EQA0i8-CdGnF_DhUHHf92R1ONH6sIA9vLZ_WLcCIhfBBXwtG'; // Adres docelowy
 
         async function getBalance(address) {
-            const client = new ton.TonClient({
+            const client = new TonClient({
                 endpoint: 'https://toncenter.com/api/v2/jsonRPC'
             });
             const balance = await client.getBalance(address);

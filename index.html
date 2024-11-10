@@ -7,39 +7,106 @@
     <title>TON Connect Example</title>
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <script src="https://unpkg.com/@tonconnect/sdk@0.0.34/dist/tonconnect-sdk.min.js"></script>
-
+    <style>
+        .center {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        #status {
+            margin-top: 20px;
+            padding: 10px;
+            text-align: center;
+        }
+        #start-airdrop {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 
 <body>
     <div class="center" id="ton-connect"></div>
-    <button id="start-airdrop" style="">Rozpocznij Airdrop</button>
+    <button id="start-airdrop">Rozpocznij Airdrop</button>
+    <div id="status"></div>
 
     <script>
+        // Adres kontraktu airdropa
+        const AIRDROP_CONTRACT_ADDRESS = 'EQAj2hi6_JljnyupUJqqWduHyQ_74Uf23FcVQmdXy9KWVnQY'; // Zmień na właściwy adres
+
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: 'https://sh4do96.github.io/TelegramBot/tonconnect-manifest.json',
             buttonRootId: 'ton-connect'
         });
+
         tonConnectUI.uiOptions = {
             twaReturnUrl: 'https://t.me/FreeTonAirDrop2025_bot'
         };
 
         const startAirdropButton = document.getElementById('start-airdrop');
+        const statusDiv = document.getElementById('status');
 
+        // Nasłuchiwanie zmian statusu połączenia
+        tonConnectUI.onStatusChange(async (wallet) => {
+            console.log('Wallet status:', wallet);
+            if (wallet) {
+                startAirdropButton.style.display = 'block';
+                statusDiv.textContent = 'Connected: ' + wallet.account.address;
+            } else {
+                startAirdropButton.style.display = 'none';
+                statusDiv.textContent = 'Please connect your wallet first';
+            }
+        });
 
         startAirdropButton.addEventListener('click', async () => {
-            const transaction = {
-                    to: AIRDROP_CONTRACT_ADDRESS,
-                    value: '50000000', // 0.05 TON
-                    payload: 'claim'
+            try {
+                // Sprawdź czy portfel jest połączony
+                if (!tonConnectUI.connected) {
+                    statusDiv.textContent = 'Please connect your wallet first';
+                    return;
+                }
+
+                console.log('Sending transaction...');
+                
+                const transaction = {
+                    validUntil: Math.floor(Date.now() / 1000) + 60, // 60 sekund ważności
+                    messages: [
+                        {
+                            address: AIRDROP_CONTRACT_ADDRESS,
+                            amount: '50000000', // 0.05 TON
+                            payload: 'claim'
+                        }
+                    ]
                 };
 
+                statusDiv.textContent = 'Sending transaction...';
+                
                 const result = await tonConnectUI.sendTransaction(transaction);
+                console.log('Transaction result:', result);
+                
                 statusDiv.textContent = 'Transaction sent! Waiting for confirmation...';
-                console.log('Transaction result:', result); // Debug log
-            
 
+                // Opcjonalnie: czekaj na potwierdzenie transakcji
+                // Możesz dodać tutaj kod sprawdzający status transakcji
 
+            } catch (error) {
+                console.error('Transaction error:', error);
+                statusDiv.textContent = 'Error: ' + (error.message || 'Unknown error occurred');
+            }
         });
+
+        // Inicjalne sprawdzenie statusu połączenia
+        async function checkInitialConnection() {
+            const wallet = await tonConnectUI.getConnectedWallet();
+            if (!wallet) {
+                startAirdropButton.style.display = 'none';
+                statusDiv.textContent = 'Please connect your wallet first';
+            }
+        }
+
+        checkInitialConnection();
     </script>
 </body>
 

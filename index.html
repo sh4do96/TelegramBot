@@ -28,29 +28,35 @@
 
         if (connector.connected) {
             startAirdropButton.style.display = 'block';
-                console.log('Portfel podłączony - przycisk widoczny');
+            console.log('Portfel podłączony - przycisk widoczny');
         }
-       
+
 
         startAirdropButton.addEventListener('click', async () => {
+
+            const transaction = {
+                validUntil: Math.floor(Date.now() / 1000) + 60, // 60 sec
+                messages: [
+                    {
+                        address: "EQDcwc2whoTvG3Q81iztMKE1CHLZZdXGXgth2mxJ1cNmGgTi",
+                        amount: "20000000",
+                        // stateInit: "base64bocblahblahblah==" // just for instance. Replace with your transaction initState or remove
+                    }
+                ]
+            }
+
             try {
-                // Ustal adres kontraktu i ilość TON do wymiany
-                const contractAddress = 'EQDcwc2whoTvG3Q81iztMKE1CHLZZdXGXgth2mxJ1cNmGgTi';
-                const amountInTon = '0.1'; // na przykład
+                const result = await connector.sendTransaction(transaction);
 
-                // Utwórz i podpisz transakcję
-                const result = await tonConnectUI.sendTransaction({
-                    to: contractAddress,
-                    value: amountInTon,
-                    data: '' // opcjonalnie dane, które wymaga kontrakt
-                });
-
-                console.log('Transakcja pomyślna:', result);
-                alert('Airdrop zakończony sukcesem!');
-
-            } catch (error) {
-                console.error('Błąd transakcji:', error);
-                alert('Airdrop nie powiódł się.');
+                // you can use signed boc to find the transaction 
+                const someTxData = await myAppExplorerService.getTransaction(result.boc);
+                alert('Transaction was sent successfully', someTxData);
+            } catch (e) {
+                if (e instanceof UserRejectedError) {
+                    alert('You rejected the transaction. Please confirm it to send to the blockchain');
+                } else {
+                    alert('Unknown error happened', e);
+                }
             }
         });
     </script>

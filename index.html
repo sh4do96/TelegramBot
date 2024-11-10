@@ -4,19 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DOGS Token Airdrop</title>
-    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-    <script src="https://unpkg.com/ton-core@latest/dist/ton-core.js"></script>
-    <script src="https://unpkg.com/ton-crypto@latest/dist/ton-crypto.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ton-core@latest/dist/ton-core.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ton-web3@latest/dist/ton-web3.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
+            text-align: center;
         }
         button {
             padding: 10px 20px;
-            margin: 10px 0;
+            margin: 10px;
+            font-size: 16px;
             cursor: pointer;
         }
         #status {
@@ -28,84 +30,72 @@
 </head>
 <body>
     <h1>DOGS Token Airdrop</h1>
-    <div id="wallet-connection"></div>
+    <div id="wallet-container"></div>
     <button id="claimButton" style="display: none;">Claim Airdrop</button>
     <div id="status"></div>
 
     <script>
-        // Konfiguracja TonConnect
-        const tonConnectUI = new TonConnectUI({
+        const connector = new TonConnectUI({
             manifestUrl: 'https://sh4do96.github.io/TelegramBot/tonconnect-manifest.json',
-            buttonRootId: 'wallet-connection'
+            buttonRootId: 'wallet-container'
         });
 
-        // Adres kontraktu airdropa
+        // Adres kontraktu airdropa (zmień na właściwy)
         const AIRDROP_CONTRACT_ADDRESS = 'EQAj2hi6_JljnyupUJqqWduHyQ_74Uf23FcVQmdXy9KWVnQY';
 
-        // Nasłuchiwanie na zmiany stanu połączenia
-        tonConnectUI.onStatusChange(async (wallet) => {
-            const claimButton = document.getElementById('claimButton');
+        const claimButton = document.getElementById('claimButton');
+        const statusDiv = document.getElementById('status');
+
+        connector.onStatusChange(async (wallet) => {
             if (wallet) {
                 claimButton.style.display = 'block';
-                // Sprawdź czy użytkownik już odebrał airdrop
-                await checkClaimStatus(wallet.account.address);
+                statusDiv.textContent = 'Connected: ' + wallet.account.address;
+                checkIfClaimed(wallet.account.address);
             } else {
                 claimButton.style.display = 'none';
-                setStatus('');
+                statusDiv.textContent = 'Please connect your wallet';
             }
         });
 
-        // Funkcja do sprawdzania statusu claima
-        async function checkClaimStatus(userAddress) {
+        async function checkIfClaimed(address) {
             try {
-                // Tu dodaj kod do wywołania metody get hasClaimedAirdrop
-                // i zaktualizuj status odpowiednio
+                // Tutaj dodaj logikę sprawdzania czy użytkownik już odebrał airdrop
+                // używając metody hasClaimedAirdrop z kontraktu
+                // Jeśli już odebrał, możesz dezaktywować przycisk
             } catch (error) {
-                setStatus('Error checking claim status: ' + error.message, 'error');
+                console.error('Error checking claim status:', error);
             }
         }
 
-        // Obsługa przycisku claim
-        document.getElementById('claimButton').addEventListener('click', async () => {
-            if (!tonConnectUI.connected) {
-                setStatus('Please connect your wallet first', 'error');
-                return;
-            }
-
+        claimButton.addEventListener('click', async () => {
             try {
-                setStatus('Claiming airdrop...', 'info');
+                if (!connector.connected) {
+                    statusDiv.textContent = 'Please connect your wallet first';
+                    return;
+                }
 
-                // Przygotowanie transakcji
+                // Przygotuj transakcję
                 const transaction = {
-                    validUntil: Math.floor(Date.now() / 1000) + 60, // 60 sekund ważności
-                    messages: [
-                        {
-                            address: AIRDROP_CONTRACT_ADDRESS,
-                            amount: '50000000', // 0.05 TON w nanach
-                            payload: 'claim' // Message to wywołanie funkcji claim
-                        }
-                    ]
+                    to: AIRDROP_CONTRACT_ADDRESS,
+                    value: '50000000', // 0.05 TON na opłaty
+                    payload: {
+                        abi: 'claim', // Wywołanie funkcji claim
+                        method: 'claim'
+                    }
                 };
 
-                // Wysłanie transakcji
-                const result = await tonConnectUI.sendTransaction(transaction);
+                // Wyślij transakcję
+                const result = await connector.sendTransaction(transaction);
                 
-                setStatus('Transaction sent! Waiting for confirmation...', 'info');
+                statusDiv.textContent = 'Transaction sent! Waiting for confirmation...';
                 
-                // Tu możesz dodać kod do śledzenia statusu transakcji
+                // Możesz dodać tutaj logikę oczekiwania na potwierdzenie transakcji
                 
             } catch (error) {
-                setStatus('Error claiming airdrop: ' + error.message, 'error');
+                console.error('Error claiming airdrop:', error);
+                statusDiv.textContent = 'Error: ' + error.message;
             }
         });
-
-        // Funkcja pomocnicza do wyświetlania statusu
-        function setStatus(message, type = 'info') {
-            const statusDiv = document.getElementById('status');
-            statusDiv.textContent = message;
-            statusDiv.style.backgroundColor = type === 'error' ? '#ffebee' : '#e3f2fd';
-        }
     </script>
 </body>
 </html>
-            

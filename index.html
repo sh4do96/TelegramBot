@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TON Connect Example</title>
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <script src="https://unpkg.com/@tonconnect/sdk@0.0.34/dist/tonconnect-sdk.min.js"></script>
+
 </head>
 
 <body>
@@ -13,6 +15,7 @@
     <button id="start-airdrop" style="display: none;">Rozpocznij Airdrop</button>
 
     <script>
+        const connector = new TonConnectSDK.TonConnect();
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: 'https://sh4do96.github.io/TelegramBot/tonconnect-manifest.json',
             buttonRootId: 'ton-connect'
@@ -23,17 +26,11 @@
 
         const startAirdropButton = document.getElementById('start-airdrop');
 
-        // Nasłuchiwanie zmian stanu połączenia
-        tonConnectUI.connection.subscribe((connection) => {
-            console.log('Stan połączenia:', connection.status); // Wyświetlenie statusu w konsoli
-            if (connection.status === 'connected') {
-                startAirdropButton.style.display = 'block';
+        if (connector.connected) {
+            startAirdropButton.style.display = 'block';
                 console.log('Portfel podłączony - przycisk widoczny');
-            } else {
-                startAirdropButton.style.display = 'none';
-                console.log('Portfel niepodłączony - przycisk ukryty');
-            }
-        });
+        }
+       
 
         startAirdropButton.addEventListener('click', async () => {
             try {

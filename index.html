@@ -13,13 +13,11 @@
             justify-content: center;
             margin: 20px 0;
         }
-
         #status {
             margin-top: 20px;
             padding: 10px;
             text-align: center;
         }
-
         #start-airdrop {
             display: block;
             margin: 20px auto;
@@ -31,12 +29,12 @@
 
 <body>
     <div class="center" id="ton-connect"></div>
-    <button id="start-airdrop">Rozpocznij Airdrop 1</button>
+    <button id="start-airdrop">Rozpocznij Airdroasdasp</button>
     <div id="status"></div>
 
     <script>
-        // Adres kontraktu airdropa
-        const AIRDROP_CONTRACT_ADDRESS = 'EQAj2hi6_JljnyupUJqqWduHyQ_74Uf23FcVQmdXy9KWVnQY'; // Zmień na właściwy adres
+        const AIRDROP_CONTRACT_ADDRESS = 'EQAj2hi6_JljnyupUJqqWduHyQ_74Uf23FcVQmdXy9KWVnQY'; // Twój adres kontraktu airdropa
+        const DOGS_TOKEN_ADDRESS = 'EQCvxJy4eG8hyHBFsZ7eePxrRsUQSFE_jpptRAYBmcG_DOGS'; // Podmień na właściwy adres kontraktu tokenu DOGS
 
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: 'https://sh4do96.github.io/TelegramBot/tonconnect-manifest.json',
@@ -50,7 +48,6 @@
         const startAirdropButton = document.getElementById('start-airdrop');
         const statusDiv = document.getElementById('status');
 
-        // Nasłuchiwanie zmian statusu połączenia
         tonConnectUI.onStatusChange(async (wallet) => {
             console.log('Wallet status:', wallet);
             if (wallet) {
@@ -64,7 +61,6 @@
 
         startAirdropButton.addEventListener('click', async () => {
             try {
-                // Sprawdź czy portfel jest połączony
                 if (!tonConnectUI.connected) {
                     statusDiv.textContent = 'Please connect your wallet first';
                     return;
@@ -72,39 +68,59 @@
 
                 console.log('Sending transaction...');
 
+                // Zakodowany payload dla metody "claim"
+                const payload = {
+                    abi: {
+                        "type": "Contract",
+                        "value": {
+                            "name": "claim",
+                            "inputs": []
+                        }
+                    }
+                };
+
+                // Przygotowanie transakcji
                 const transaction = {
-                    validUntil: Math.floor(Date.now() / 1000) + 60,
                     messages: [
                         {
                             address: AIRDROP_CONTRACT_ADDRESS,
-                            amount: '50000000',
-                            payload: {
-                                type: 'safe',
-                                text: 'Claim DOGS Token Airdrop',
-                                operation: 'receive',
-                                data: {
-                                    amount: '100', // ilość tokenów
-                                    token: {
-                                        name: 'DOGS Token',
-                                        symbol: 'DOGS',
-                                        decimals: 9,
-                                        image: 'https://twoja-strona.com/dogs-token-logo.png'
-                                    }
-                                }
-                            }
+                            amount: '50000000', // 0.05 TON
+                            stateInit: null,
+                            payload: payload
                         }
-                    ]
+                    ],
+                    validUntil: Math.floor(Date.now() / 1000) + 60,
+                    from: await tonConnectUI.account.address,
+                    network: 'mainnet',
+                    params: {
+                        tokens: [
+                            {
+                                type: "token",
+                                address: DOGS_TOKEN_ADDRESS,
+                                name: "DOGS Token",
+                                symbol: "DOGS",
+                                image: "https://twoja-strona.com/dogs-logo.png", // URL do logo tokenu
+                                amount: "100000000000", // 100 DOGS (dostosuj zera według decimali tokenu)
+                                decimals: 9 // Liczba decimali tokenu DOGS
+                            }
+                        ]
+                    }
                 };
 
                 statusDiv.textContent = 'Sending transaction...';
+                
+                const result = await tonConnectUI.sendTransaction({
+                    messages: transaction.messages,
+                    validUntil: transaction.validUntil,
+                    from: transaction.from,
+                    network: transaction.network,
+                    params: {
+                        tokens: transaction.params.tokens
+                    }
+                });
 
-                const result = await tonConnectUI.sendTransaction(transaction);
                 console.log('Transaction result:', result);
-
                 statusDiv.textContent = 'Transaction sent! Waiting for confirmation...';
-
-                // Opcjonalnie: czekaj na potwierdzenie transakcji
-                // Możesz dodać tutaj kod sprawdzający status transakcji
 
             } catch (error) {
                 console.error('Transaction error:', error);
@@ -112,7 +128,6 @@
             }
         });
 
-        // Inicjalne sprawdzenie statusu połączenia
         async function checkInitialConnection() {
             const wallet = await tonConnectUI.getConnectedWallet();
             if (!wallet) {

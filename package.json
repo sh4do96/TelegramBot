@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@ton/ton": "^15.1.0"
+  }
+}

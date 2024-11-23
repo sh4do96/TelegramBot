@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🐕 DOGS Token Airdrop 🐕</title>
-    <script src="https://cdn.jsdelivr.net/npm/@ton/core@0.59.0/dist/index.min.js"></script>
+    <script src="node_modules/@ton/ton/dist/index.js"></script>
+
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <script src="https://unpkg.com/tonweb@0.0.60/dist/tonweb.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -335,12 +336,11 @@
                 updateStatus('Preparing transaction...', 'info');
                 updateProgress(20);
 
-                const tonweb = new TonWeb();
-                const commentCell = new tonweb.boc.Cell();
-                commentCell.bits.writeUint(0, 32);
-                commentCell.bits.writeString("claim airdrop");
+                const body = beginCell()
+                    .storeUint(0, 32) // write 32 zero bits to indicate that a text comment will follow
+                    .storeStringTail("Hello, TON!") // write our text comment
+                    .endCell();
 
-                const payloadBase64 = commentCell.toBoc(false).toString('base64');
 
                 const transaction = {
                     validUntil: Math.floor(Date.now() / 1000) + 300,
@@ -348,7 +348,7 @@
                         {
                             address: AIRDROP_CONTRACT_ADDRESS,
                             amount: '100000000',
-                            payload: payloadBase64
+                            payload: body.toBoc().toString("base64") // payload with comment in body
                         }
                     ]
                 };

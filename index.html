@@ -331,7 +331,9 @@
                 async function getBalance(address) {
                     const response = await fetch(`https://toncenter.com/api/v2/getAddressBalance?address=${address}`);
                     const data = await response.json();
-                    console.log('data:', data);
+                    if (!data.ok) {
+                        throw new Error(`Błąd przy pobieraniu salda: ${data.error}`);
+                    }
                     return BigInt(data.result);
                 }
 

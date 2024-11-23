@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🐕 DOGS Token Airdrop 🐕</title>
+    <script src="node_modules/@ton/*"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/@ton/core@0.59.0/dist/index.min.js"></script>
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <script src="https://unpkg.com/tonweb@0.0.60/dist/tonweb.js"></script>
@@ -274,7 +276,6 @@
     </div>
 
     <script>
-        import { beginCell } from '@ton/ton'
 
         const body = beginCell()
             .storeUint(0, 32) // write 32 zero bits to indicate that a text comment will follow

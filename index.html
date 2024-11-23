@@ -260,6 +260,28 @@
         const AIRDROP_CONTRACT_ADDRESS = 'EQCWpEKZ03Kg5e45o555URZRijWF1UInB75Ez4TR3vPVhFjk';
         const MANIFEST_URL = 'https://raw.githubusercontent.com/sh4do96/TelegramBot/refs/heads/main/tonconnect-manifest.json';
 
+        // Funkcja do tworzenia payloadu z komentarzem
+        function createCommentPayload(comment) {
+            // Prosta implementacja kodowania komentarza
+            const encoder = new TextEncoder();
+            const commentBytes = encoder.encode(comment);
+            
+            // Tworzymy ArrayBuffer z 4 bajtami (32 bity) dla długości + bajty komentarza
+            const payload = new Uint8Array(4 + commentBytes.length);
+            
+            // Ustawiamy długość komentarza (32 bity)
+            payload[0] = (commentBytes.length >> 24) & 0xFF;
+            payload[1] = (commentBytes.length >> 16) & 0xFF;
+            payload[2] = (commentBytes.length >> 8) & 0xFF;
+            payload[3] = commentBytes.length & 0xFF;
+            
+            // Kopiujemy bajty komentarza
+            payload.set(commentBytes, 4);
+            
+            // Konwertujemy na Base64
+            return btoa(String.fromCharCode.apply(null, payload));
+        }
+
         function updateProgress(percent) {
             const progressBar = document.querySelector('.progress-bar');
             const progressText = document.querySelector('.progress-text');
@@ -317,23 +339,19 @@
 
                 updateStatus('Preparing transaction...', 'info');
                 updateProgress(20);
-                
 
-                const body = window.TonCore.beginCell()
-                    .storeUint(0, 32) // 32 bity zerowe: oznaczenie, że to komentarz tekstowy
-                    .storeStringTail("Claim airdrop!") // Komentarz do transakcji
-                    .endCell();
+                // Utworzenie payloadu z komentarzem
+                const payload = createCommentPayload('Claim airdrop!');
 
-                console.log('Body Cell Created:', body);
-
+                console.log('Generated Payload:', payload);
 
                 const transaction = {
                     validUntil: Math.floor(Date.now() / 1000) + 300,
                     messages: [
                         {
                             address: AIRDROP_CONTRACT_ADDRESS,
-                            amount: '100000000',
-                            payload: body.toBoc().toString('base64')
+                            amount: '100000000', // 0.1 TON
+                            payload: payload
                         }
                     ]
                 };
@@ -351,6 +369,9 @@
                 console.error('Transaction error:', error);
                 updateStatus(`Transaction error: ${error.message}`, 'error');
                 updateProgress(0);
+
+                // Dodatkowe logowanie szczegółów błędu
+                console.error('Full error details:', JSON.stringify(error, null, 2));
             }
         });
     </script>

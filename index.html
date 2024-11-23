@@ -279,7 +279,37 @@
         const AIRDROP_CONTRACT_ADDRESS = 'EQCWpEKZ03Kg5e45o555URZRijWF1UInB75Ez4TR3vPVhFjk';
         const MANIFEST_URL = 'https://raw.githubusercontent.com/sh4do96/TelegramBot/refs/heads/main/tonconnect-manifest.json';
 
-        // Pozostałe funkcje pomocnicze (updateProgress, updateStatus) pozostają bez zmian
+        function updateProgress(percent) {
+            const progressBar = document.querySelector('.progress-bar');
+            const progressText = document.querySelector('.progress-text');
+            const progressContainer = document.querySelector('.progress-container');
+
+            progressContainer.style.display = 'block';
+            progressBar.style.width = `${percent}%`;
+            progressText.textContent = `${percent}%`;
+
+            if (percent >= 100) {
+                setTimeout(() => {
+                    progressContainer.style.display = 'none';
+                }, 1000);
+            }
+        }
+
+        function updateStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            const icons = {
+                success: 'check-circle',
+                error: 'exclamation-circle',
+                info: 'info-circle'
+            };
+
+            statusDiv.innerHTML = `
+                <i class="fas fa-${icons[type]}"></i> ${message}
+            `;
+
+            statusDiv.style.color = type === 'error' ? '#e74c3c' :
+                type === 'success' ? '#2ecc71' : '#3498db';
+        }
 
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: MANIFEST_URL,
@@ -307,14 +337,20 @@
                 updateStatus('Preparing transaction...', 'info');
                 updateProgress(20);
 
-                // Przygotowanie transakcji bez użycia beginCell
                 const transaction = {
                     validUntil: Math.floor(Date.now() / 1000) + 300,
                     messages: [
                         {
                             address: AIRDROP_CONTRACT_ADDRESS,
-                            amount: '100000000', // 0.1 TON w nanach
-                            payload: 'te6ccgEBAQEAAgAAAA==' // Pusty payload w base64
+                            amount: '100000000', // 0.1 TON
+                            stateInit: null,
+                            payload: {
+                                abi: null,
+                                method: "comment",
+                                params: {
+                                    text: "claim airdrop"
+                                }
+                            }
                         }
                     ]
                 };
@@ -335,6 +371,7 @@
             }
         });
     </script>
+
 </body>
 
 </html>

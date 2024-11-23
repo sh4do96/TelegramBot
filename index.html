@@ -8,8 +8,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@ton/core@0.59.0/dist/index.min.js"></script>
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <script src="https://unpkg.com/tonweb@0.0.60/dist/tonweb.js"></script>
+    <script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src=" https://cdn.jsdelivr.net/npm/tonweb@0.0.66/src/index.min.js "></script>
     <style>
         :root {
             --primary-color: #2ecc71;
@@ -340,7 +340,8 @@
                 updateStatus('Preparing transaction...', 'info');
                 updateProgress(20);
 
-
+                TonWeb.utils.bytesToBase64(await payloadCell.toBoc())
+                
                 let a = new TonWeb.boc.Cell();
                 a.bits.writeUint(0, 32);
                 a.bits.writeString("TON Connect 2 tutorial!");

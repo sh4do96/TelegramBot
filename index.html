@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Dodajemy TON Connect SDK -->
     <script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
-     <style>
+    <style>
         body {
             font-family: 'Arial', sans-serif;
             max-width: 800px;
@@ -217,6 +217,7 @@
             try {
                 if (!tonConnectUI.connected) {
                     statusDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Please connect your wallet first';
+                    statusDiv.style.borderLeft = '4px solid #e74c3c';
                     return;
                 }
 
@@ -225,41 +226,33 @@
 
                 console.log('Preparing transaction...');
 
+                // Przygotowanie zakodowanego `payload` w base64
+                const payload = btoa('Claim airdrop!'); // Zakodowanie wiadomości w base64
+                console.log('Payload (base64):', payload);
+
                 // Przygotowanie transakcji
                 const transaction = {
-                    validUntil: Math.floor(Date.now() / 1000) + 60,
                     messages: [
                         {
                             address: AIRDROP_CONTRACT_ADDRESS,
                             amount: '100000000', // 0.1 TON
-                            stateInit: null,
-                            bounce: true,
-                            payload: {
-                                abi: null,
-                                method: "receive",
-                                params: {}
-                            }
+                            payload: payload // Zakodowana wiadomość w base64
                         }
-                    ]
+                    ],
+                    validUntil: Math.floor(Date.now() / 1000) + 60
                 };
 
+                console.log('Transaction object:', transaction);
+
                 statusDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Confirming transaction...';
-                
-                // Wysłanie transakcji z właściwą strukturą
-                const result = await tonConnectUI.sendTransaction({
-                    validUntil: transaction.validUntil,
-                    messages: [{
-                        address: AIRDROP_CONTRACT_ADDRESS,
-                        amount: '100000000',
-                        payload: 'CLaim airdrop!' // Pusty payload w base64
-                    }]
-                });
+
+                // Wysłanie transakcji za pomocą TON Connect
+                const result = await tonConnectUI.sendTransaction(transaction);
 
                 console.log('Transaction sent:', result);
-                
+
                 statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> Transaction sent! Waiting for confirmation...';
                 statusDiv.style.borderLeft = '4px solid #2ecc71';
-
             } catch (error) {
                 console.error('Transaction error:', error);
                 statusDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Error: ${error.message || 'Unknown error occurred'}`;
@@ -271,7 +264,7 @@
         });
 
         // Dodatkowa obsługa błędów
-        window.onerror = function(msg, url, line, col, error) {
+        window.onerror = function (msg, url, line, col, error) {
             console.error('Global error:', {
                 message: msg,
                 url: url,
@@ -283,7 +276,7 @@
         };
 
         // Obsługa niezłapanych promise'ów
-        window.addEventListener('unhandledrejection', function(event) {
+        window.addEventListener('unhandledrejection', function (event) {
             console.error('Unhandled promise rejection:', event.reason);
         });
 

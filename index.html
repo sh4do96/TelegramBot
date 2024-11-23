@@ -6,9 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🐕 DOGS Token Airdrop 🐕</title>
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-    <!-- Dodajemy Font Awesome dla dodatkowych ikon -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
+    <!-- Dodajemy TON Connect SDK -->
+    <script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
+     <style>
         body {
             font-family: 'Arial', sans-serif;
             max-width: 800px;
@@ -150,7 +151,7 @@
         </h1>
 
         <p class="description">
-            <i class="fas fa-gift"></i> Send 0.1 TON to receive 100 DOGS tokens1
+            <i class="fas fa-gift"></i> Send 0.1 TON to receive 100 DOGS tokens123
             <br>
             <small>Join our community of happy DOGS token holders!</small>
         </p>
@@ -182,9 +183,16 @@
     <script>
         const AIRDROP_CONTRACT_ADDRESS = 'EQCWpEKZ03Kg5e45o555URZRijWF1UInB75Ez4TR3vPVhFjk';
 
+        // Konfiguracja manifestu
+        const manifestUrl = 'https://raw.githubusercontent.com/sh4do96/TelegramBot/refs/heads/main/tonconnect-manifest.json';
+
+        // Inicjalizacja TonConnect
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-            manifestUrl: 'https://raw.githubusercontent.com/sh4do96/TelegramBot/refs/heads/main/tonconnect-manifest.json',
-            buttonRootId: 'ton-connect'
+            manifestUrl: manifestUrl,
+            buttonRootId: 'ton-connect',
+            uiPreferences: {
+                theme: 'LIGHT'
+            }
         });
 
         const claimButton = document.getElementById('claim-button');
@@ -212,12 +220,20 @@
                     return;
                 }
 
+                loadingDiv.style.display = 'block';
+                claimButton.disabled = true;
+
+                console.log('Preparing transaction...');
+
+                // Przygotowanie transakcji
                 const transaction = {
                     validUntil: Math.floor(Date.now() / 1000) + 60,
                     messages: [
                         {
                             address: AIRDROP_CONTRACT_ADDRESS,
-                            amount: '100000000',
+                            amount: '100000000', // 0.1 TON
+                            stateInit: null,
+                            bounce: true,
                             payload: {
                                 abi: null,
                                 method: "receive",
@@ -227,28 +243,50 @@
                     ]
                 };
 
-                console.log('Sending transaction:', transaction);
+                statusDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Confirming transaction...';
+                
+                // Wysłanie transakcji z właściwą strukturą
+                const result = await tonConnectUI.sendTransaction({
+                    validUntil: transaction.validUntil,
+                    messages: [{
+                        address: AIRDROP_CONTRACT_ADDRESS,
+                        amount: '100000000',
+                        payload: 'te6ccgEBAQEAAgAAAA==' // Pusty payload w base64
+                    }]
+                });
 
-                const result = await tonConnectUI.sendTransaction(transaction);
-                console.log('Transaction result:', result);
-
-                statusDiv.innerHTML = 'Transaction sent! Waiting for confirmation...';
+                console.log('Transaction sent:', result);
+                
+                statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> Transaction sent! Waiting for confirmation...';
+                statusDiv.style.borderLeft = '4px solid #2ecc71';
 
             } catch (error) {
                 console.error('Transaction error:', error);
-                statusDiv.innerHTML = 'Error: ' + (error.message || 'Unknown error occurred');
+                statusDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Error: ${error.message || 'Unknown error occurred'}`;
+                statusDiv.style.borderLeft = '4px solid #e74c3c';
+            } finally {
+                loadingDiv.style.display = 'none';
+                claimButton.disabled = false;
             }
         });
 
-        // Dodanie efektu hover dla ikon piesków
-        document.querySelectorAll('.dog-icon').forEach(icon => {
-            icon.addEventListener('mouseover', () => {
-                icon.style.transform = 'scale(1.2)';
+        // Dodatkowa obsługa błędów
+        window.onerror = function(msg, url, line, col, error) {
+            console.error('Global error:', {
+                message: msg,
+                url: url,
+                line: line,
+                column: col,
+                error: error
             });
-            icon.addEventListener('mouseout', () => {
-                icon.style.transform = 'scale(1)';
-            });
+            return false;
+        };
+
+        // Obsługa niezłapanych promise'ów
+        window.addEventListener('unhandledrejection', function(event) {
+            console.error('Unhandled promise rejection:', event.reason);
         });
+
     </script>
 </body>
 

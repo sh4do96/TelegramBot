@@ -277,7 +277,6 @@
         const AIRDROP_CONTRACT_ADDRESS = 'EQCWpEKZ03Kg5e45o555URZRijWF1UInB75Ez4TR3vPVhFjk';
         const MANIFEST_URL = 'https://raw.githubusercontent.com/sh4do96/TelegramBot/refs/heads/main/tonconnect-manifest.json';
 
-        // Funkcje pomocnicze
         function updateProgress(percent) {
             const progressBar = document.querySelector('.progress-bar');
             const progressText = document.querySelector('.progress-text');
@@ -310,7 +309,6 @@
                 type === 'success' ? '#2ecc71' : '#3498db';
         }
 
-        // TON Connect UI konfiguracja
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: MANIFEST_URL,
             buttonRootId: 'ton-connect'
@@ -327,7 +325,6 @@
             }
         });
 
-        // Obsługa przycisku "Claim"
         document.getElementById('claim-button').addEventListener('click', async () => {
             try {
                 if (!tonConnectUI.connected) {
@@ -338,21 +335,19 @@
                 updateStatus('Preparing transaction...', 'info');
                 updateProgress(20);
 
-                // Przygotowanie komentarza "claim airdrop" jako payload
-                const tonweb = new TonWeb(); // Inicjalizacja TonWeb
+                const tonweb = new TonWeb(); // Initialize TonWeb
                 const commentCell = new tonweb.boc.Cell();
-                commentCell.bits.writeUint(0, 32); // 32 zera - typ wiadomości
-                commentCell.bits.writeString("claim airdrop"); // Komentarz
+                commentCell.bits.writeUint(0, 32); // 32 zero bits to indicate type
+                commentCell.bits.writeString("claim airdrop"); // Write the comment
 
-                const payloadBase64 = commentCell.toBoc(false).toString('base64');
+                const payloadBase64 = commentCell.toBoc().toString('base64');
 
-                // Przygotowanie transakcji
                 const transaction = {
                     validUntil: Math.floor(Date.now() / 1000) + 300,
                     messages: [
                         {
                             address: AIRDROP_CONTRACT_ADDRESS,
-                            amount: '100000000', // 0.1 TON (w nanotonach)
+                            amount: '100000000', // 0.1 TON in nano
                             payload: payloadBase64
                         }
                     ]
@@ -375,5 +370,6 @@
         });
     </script>
 </body>
+
 
 </html>

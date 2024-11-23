@@ -77,7 +77,16 @@
                         {
                             address: AIRDROP_CONTRACT_ADDRESS,
                             amount: '200000000',
-                            payload: "Claim airdrop" // Prostsza wersja z samym tekstem
+                            payload: {
+                                abi: {
+                                    "type": "Contract",
+                                    "value": {
+                                        "name": "claim",
+                                        "inputs": []
+                                    }
+                                },
+                                text: "Claim airdrop"
+                            }
                         }
                     ],
                     from: tonConnectUI.wallet.account.address,
@@ -98,7 +107,7 @@
                 });
 
                 console.log('Transaction result:', result);
-                statusDiv.textContent = 'Transaction sent! Waiting for confirmation...';
+                statusDiv.textContent = 'Transaction sent Waiting for confirmation...';
 
             } catch (error) {
                 console.error('Transaction error:', error);

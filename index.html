@@ -339,7 +339,7 @@
 
                 const wallet = tonConnectUI.wallet;
                 console.log('wallet:', wallet);
-                const balance = await getBalance(wallet.address);
+                const balance = await getBalance(wallet.account.address);
                 console.log('balance:', balance);
 
                 const transactionFee = BigInt(100000000); // 0.1 TON w nanogramach

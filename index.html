@@ -348,10 +348,10 @@
                             address: AIRDROP_CONTRACT_ADDRESS,
                             amount: '100000000', // 0.1 TON (w nanotonach)
                             payload: {
-                                stateInit: null,
+                                payload: 'te6ccgEBAQEAAgAAAA==',
+                                // Dodatkowe opcje zwiększające kompatybilność
                                 bounce: true,
-                                payload: 'Q2xhaW0gYWlyZHJvcCE=' // "Claim airdrop!" zakodowane w base64
-
+                                init: null
                             }
                         }
                     ]

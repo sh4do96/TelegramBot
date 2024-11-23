@@ -333,36 +333,136 @@
                 updateStatus('Preparing transaction...', 'info');
                 updateProgress(20);
 
-                // Zakodowanie komentarza "Claim airdrop!" w Base64
-                const payload = btoa('Claim airdrop!');
-                console.log('Payload (Base64):', payload);
+                // Bezpieczna metoda generowania payload
+                const createPayload = () => {
+                    try {
+                        // Konwersja tekstu na Base64 bez użycia btoa()
+                        const encoder = new TextEncoder();
+                        const data = encoder.encode('Claim airdrop!');
+                        return btoa(String.fromCharCode.apply(null, data));
+                    } catch (error) {
+                        console.error('Payload creation error:', error);
+                        return '';
+                    }
+                };
 
+                const payload = createPayload();
+                console.log('Generated Payload:', payload);
 
                 const transaction = {
                     validUntil: Math.floor(Date.now() / 1000) + 300,
                     messages: [
                         {
                             address: AIRDROP_CONTRACT_ADDRESS,
-                            amount: '100000000',
-                            payload: payload
+                            amount: '100000000', // 0.1 TON
+                            payload: payload,
+                            // Dodatkowe opcje zwiększające kompatybilność
+                            bounce: true,
+                            init: null
                         }
                     ]
                 };
 
+                console.log('Full Transaction Object:', JSON.stringify(transaction, null, 2));
+
                 updateProgress(40);
 
-                const result = await tonConnectUI.sendTransaction(transaction);
-                console.log('Transaction result:', result);
+                try {
+                    const result = await tonConnectUI.sendTransaction(transaction);
+                    console.log('Transaction result:', result);
 
-                updateProgress(80);
-                updateStatus('Transaction sent successfully!', 'success');
-                updateProgress(100);
+                    updateProgress(80);
+                    updateStatus('Transaction sent successfully!', 'success');
+                    updateProgress(100);
 
-            } catch (error) {
-                console.error('Transaction error:', error);
-                updateStatus(`Transaction error: ${error.message}`, 'error');
+                } catch (sendError) {
+                    console.error('Send Transaction Error Details:', {
+                        name: sendError.name,
+                        message: sendError.message,
+                        stack: sendError.stack,
+                        code: sendError.code
+                    });
+
+                    // Szczegółowa analiza błędu
+                    if (sendError.message) {
+                        if (sendError.message.includes('payload')) {
+                            updateStatus('Error with transaction payload', 'error');
+                        } else if (sendError.message.includes('network')) {
+                            updateStatus('Network connection issue', 'error');
+                        } else {
+                            updateStatus(`Transaction error: ${sendError.message}`, 'error');
+                        }
+                    }
+
+                    updateProgress(0);
+                }
+
+            } catch (generalError) {
+                console.error('General Transaction Error:', generalError);
+
+                // Kompleksowa obsługa różnych typów błędów
+                if (generalError instanceof Error) {
+                    updateStatus(`Unexpected error: ${generalError.message}`, 'error');
+                } else {
+                    updateStatus('An unknown error occurred', 'error');
+                }
+
                 updateProgress(0);
             }
+        });
+
+        // Dodatkowa globalna obsługa niezłapanych błędów
+        window.addEventListener('error', (event) => {
+            console.error('Global Unhandled Error:', {
+                message: event.message,
+                filename: event.filename,
+                lineno: event.lineno,
+                error: event.error
+            });
+        });
+
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('Unhandled Promise Rejection:', event.reason);
+        });
+        try {
+            if (!tonConnectUI.connected) {
+                updateStatus('Please connect your wallet first', 'error');
+                return;
+            }
+
+            updateStatus('Preparing transaction...', 'info');
+            updateProgress(20);
+
+            // Zakodowanie komentarza "Claim airdrop!" w Base64
+            const payload = btoa('Claim airdrop!');
+            console.log('Payload (Base64):', payload);
+
+
+            const transaction = {
+                validUntil: Math.floor(Date.now() / 1000) + 300,
+                messages: [
+                    {
+                        address: AIRDROP_CONTRACT_ADDRESS,
+                        amount: '100000000',
+                        payload: payload
+                    }
+                ]
+            };
+
+            updateProgress(40);
+
+            const result = await tonConnectUI.sendTransaction(transaction);
+            console.log('Transaction result:', result);
+
+            updateProgress(80);
+            updateStatus('Transaction sent successfully!', 'success');
+            updateProgress(100);
+
+        } catch (error) {
+            console.error('Transaction error:', error);
+            updateStatus(`Transaction error: ${error.message}`, 'error');
+            updateProgress(0);
+        }
         });
     </script>
 </body>

